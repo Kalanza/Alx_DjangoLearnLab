@@ -1,161 +1,108 @@
-# LibraryProject - Django Learning Lab
+# Django Bookshelf Project
 
-A Django web application developed as part of the ALX Django Learning Lab curriculum. This project demonstrates fundamental Django concepts including project structure, settings configuration, and basic web application setup.
-
-## Project Overview
-
-LibraryProject is a Django-based web application designed to manage library resources. This project serves as an introduction to Django framework and follows best practices for Django development.
-
-## Features
-
-- Django project structure with proper configuration
-- Modular application design
-- WSGI and ASGI support for deployment
-- Development and production settings management
+A simple Django application demonstrating CRUD (Create, Read, Update, Delete) operations with a Book model.
 
 ## Project Structure
 
 ```
 LibraryProject/
 ├── manage.py                 # Django management script
-├── LibraryProject/          # Main project directory
-│   ├── __init__.py         # Python package marker
-│   ├── settings.py         # Django settings configuration
-│   ├── urls.py             # URL routing configuration
-│   ├── wsgi.py             # WSGI application entry point
-│   └── asgi.py             # ASGI application entry point
-└── README.md               # Project documentation
+├── LibraryProject/          # Main project settings
+│   ├── __init__.py
+│   ├── settings.py          # Project settings
+│   ├── urls.py              # URL configuration
+│   ├── wsgi.py              # WSGI configuration
+│   └── asgi.py              # ASGI configuration
+├── bookshelf/               # Django app
+│   ├── __init__.py
+│   ├── admin.py             # Admin configuration
+│   ├── apps.py              # App configuration
+│   ├── models.py            # Book model definition
+│   ├── views.py             # Views (empty for now)
+│   ├── tests.py             # Tests (empty for now)
+│   └── migrations/          # Database migrations
+└── docs/                    # Documentation
+    ├── CRUD_operations.md   # Complete CRUD guide
+    ├── create.md            # CREATE operations
+    ├── retrieve.md          # RETRIEVE operations
+    ├── update.md            # UPDATE operations
+    └── delete.md            # DELETE operations
 ```
 
-## Prerequisites
+## Book Model
 
-- Python 3.8 or higher
-- Django 4.0 or higher
-- pip (Python package installer)
+The `Book` model includes:
+- `title`: CharField with max length 200
+- `author`: CharField with max length 100  
+- `publication_year`: IntegerField
 
-## Installation
+## Setup Instructions
 
-1. **Clone the repository:**
+1. **Navigate to project directory:**
    ```bash
-   git clone https://github.com/Kalanza/Alx_DjangoLearnLab.git
-   cd Alx_DjangoLearnLab/Introduction_to_Django/LibraryProject
+   cd LibraryProject
    ```
 
-2. **Create a virtual environment:**
+2. **Run migrations:**
    ```bash
-   python -m venv venv
-   ```
-
-3. **Activate the virtual environment:**
-   - On Windows:
-     ```bash
-     venv\Scripts\activate
-     ```
-   - On macOS/Linux:
-     ```bash
-     source venv/bin/activate
-     ```
-
-4. **Install Django:**
-   ```bash
-   pip install django
-   ```
-
-5. **Apply migrations:**
-   ```bash
+   python manage.py makemigrations
    python manage.py migrate
    ```
 
-## Usage
+3. **Start Django shell for CRUD operations:**
+   ```bash
+   python manage.py shell
+   ```
 
-### Running the Development Server
+4. **Run development server:**
+   ```bash
+   python manage.py runserver
+   ```
 
-To start the Django development server:
+## CRUD Operations
 
-```bash
-python manage.py runserver
+Detailed documentation for all CRUD operations can be found in the `docs/` folder:
+
+- **[Complete CRUD Guide](docs/CRUD_operations.md)** - Comprehensive documentation
+- **[Create Operations](docs/create.md)** - Creating new books
+- **[Retrieve Operations](docs/retrieve.md)** - Reading book data
+- **[Update Operations](docs/update.md)** - Modifying existing books
+- **[Delete Operations](docs/delete.md)** - Removing books
+
+## Quick Start Example
+
+```python
+# In Django shell (python manage.py shell)
+from bookshelf.models import Book
+
+# Create a book
+book = Book.objects.create(
+    title="1984", 
+    author="George Orwell", 
+    publication_year=1949
+)
+
+# Retrieve the book
+print(str(book))  # Output: 1984 by George Orwell (1949)
+
+# Update the book
+book.title = "Nineteen Eighty-Four"
+book.save()
+
+# Delete the book
+book.delete()
 ```
 
-The application will be available at `http://127.0.0.1:8000/`
+## Technologies Used
 
-### Common Django Commands
+- **Django**: Web framework
+- **SQLite**: Database (default)
+- **Python**: Programming language
 
-- **Create a new app:**
-  ```bash
-  python manage.py startapp app_name
-  ```
+## Next Steps
 
-- **Create migrations:**
-  ```bash
-  python manage.py makemigrations
-  ```
-
-- **Apply migrations:**
-  ```bash
-  python manage.py migrate
-  ```
-
-- **Create a superuser:**
-  ```bash
-  python manage.py createsuperuser
-  ```
-
-- **Collect static files:**
-  ```bash
-  python manage.py collectstatic
-  ```
-
-## Configuration
-
-The project uses Django's default settings with standard configurations for:
-
-- Database: SQLite (default for development)
-- Debug mode: Enabled for development
-- Static files: Configured for development
-- Template engine: Django Template Language (DTL)
-
-## Development
-
-This project is part of the ALX Django Learning Lab curriculum and demonstrates:
-
-- Django project initialization
-- Basic project structure understanding
-- Configuration management
-- Development server setup
-
-## Contributing
-
-This is a learning project. If you're also learning Django, feel free to:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## Learning Objectives
-
-By working with this project, you will learn:
-
-- How to create a Django project
-- Understanding Django project structure
-- Basic Django configuration
-- Running Django development server
-- Django app architecture fundamentals
-
-## Resources
-
-- [Django Official Documentation](https://docs.djangoproject.com/)
-- [Django Tutorial](https://docs.djangoproject.com/en/stable/intro/tutorial01/)
-- [ALX Learning Platform](https://www.alxafrica.com/)
-
-## License
-
-This project is created for educational purposes as part of the ALX Django Learning Lab curriculum.
-
-## Contact
-
-For questions related to this learning project, please refer to the ALX Django Learning Lab materials or reach out through the ALX platform.
-
----
-
-**Note:** This is a learning project developed as part of the ALX Software Engineering Program's Django curriculum.
+- Implement web views and templates
+- Add form handling
+- Create admin interface
+- Add validation and error handling
+- Implement user authentication
