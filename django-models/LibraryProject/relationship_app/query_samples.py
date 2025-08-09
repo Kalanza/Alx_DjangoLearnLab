@@ -29,7 +29,7 @@ for book in author1.books.all():
 
 # 2. List all books in a library (e.g., Kenya National Library)
 library_name = "Kenya National Library"
-library = Library.objects.get(name =library_name)
+library = Library.objects.get(name=library_name)
 print(f"\nBooks in {library_name}:")
 for book in library.books.all():
     print(book.title)
