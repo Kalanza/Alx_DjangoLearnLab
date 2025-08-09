@@ -1,0 +1,37 @@
+<!-- library_detail.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ library.name }} - Library Details</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #f4f4f4; margin: 5px 0; padding: 10px; border-radius: 5px; }
+        .navigation { margin: 20px 0; }
+        .navigation a { margin-right: 15px; text-decoration: none; color: #007cba; }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="{% url 'home' %}">🏠 Home</a>
+        <a href="{% url 'list_books' %}">📖 All Books</a>
+    </div>
+
+    <h1>🏛️ Library: {{ library.name }}</h1>
+    
+    <h2>Books in This Library:</h2>
+    
+    {% if books %}
+        <ul>
+            {% for book in books %}
+                <li><strong>{{ book.title }}</strong> by {{ book.author.name }}</li>
+            {% endfor %}
+        </ul>
+        <p><em>Total books in this library: {{ books|length }}</em></p>
+    {% else %}
+        <p>No books are currently available in this library.</p>
+    {% endif %}
+</body>
+</html>
