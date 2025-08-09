@@ -28,8 +28,10 @@ for book in author1.books.all():
     print(book.title)
 
 # 2. List all books in a library (e.g., Kenya National Library)
-print("\nBooks in Kenya National Library:")
-for book in library1.books.all():
+library_name = "Kenya National Library"
+library = Library.objects.get(name =library_name)
+print(f"\nBooks in {library_name}:")
+for book in library.books.all():
     print(book.title)
 
 # 3. Retrieve the librarian for a library (e.g., Moi University Library)
