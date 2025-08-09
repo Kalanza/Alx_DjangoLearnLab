@@ -22,6 +22,7 @@ from django.views.generic import CreateView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import login
+from django.shortcuts import redirect
 
 # Local Model Imports
 from .models import Library, Book
@@ -112,6 +113,32 @@ class SignUpView(CreateView):
     form_class = UserCreationForm
     success_url = reverse_lazy('login')
     template_name = 'registration/register.html'
+
+
+def register(request):
+    """
+    Function-based view for user registration using Django's built-in UserCreationForm.
+    
+    This view handles both GET and POST requests for user registration.
+    On GET: displays the registration form
+    On POST: processes the form and creates a new user
+    
+    Args:
+        request: HTTP request object
+        
+    Returns:
+        Rendered registration template or redirect to login page
+    """
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # Automatically log in the user after registration
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    
+    return render(request, 'registration/register.html', {'form': form})
 
 
 class CustomLoginView(LoginView):

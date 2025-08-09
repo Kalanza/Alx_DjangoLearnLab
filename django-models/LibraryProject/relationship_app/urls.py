@@ -8,6 +8,7 @@
 from django.urls import path
 from . import views
 from .views import list_books
+from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
     # ========================================================================
@@ -21,7 +22,7 @@ urlpatterns = [
     # USER AUTHENTICATION URL PATTERNS
     # ========================================================================
     # These URLs link to the authentication views defined in views.py
-    path('login/', views.CustomLoginView.as_view(), name='login'),  # User login using custom LoginView
-    path('logout/', views.CustomLogoutView.as_view(), name='logout'),  # User logout using custom LogoutView
-    path('register/', views.SignUpView.as_view(), name='register'),  # User registration using SignUpView
+    path('login/', LoginView.as_view(template_name='registration/login.html'), name='login'),  # User login using LoginView
+    path('logout/', LogoutView.as_view(template_name='registration/logged_out.html'), name='logout'),  # User logout using LogoutView
+    path('register/', views.register, name='register'),  # User registration using register function
 ]
