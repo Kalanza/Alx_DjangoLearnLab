@@ -21,6 +21,7 @@ from django.views.generic import CreateView
 # Django Authentication Imports
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth import login
 
 # Local Model Imports
 from .models import Library, Book
