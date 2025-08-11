@@ -19,6 +19,13 @@ urlpatterns = [
     path('library/<int:pk>/', views.LibraryDetailView.as_view(), name='library_detail'),  # Class-based view for library details
     
     # ========================================================================
+    # CUSTOM PERMISSIONS URL PATTERNS - SECURED BOOK OPERATIONS
+    # ========================================================================
+    path('books/add/', views.add_book, name='add_book'),  # Add book - requires can_add_book permission
+    path('books/edit/<int:book_id>/', views.edit_book, name='edit_book'),  # Edit book - requires can_change_book permission
+    path('books/delete/<int:book_id>/', views.delete_book, name='delete_book'),  # Delete book - requires can_delete_book permission
+    
+    # ========================================================================
     # USER AUTHENTICATION URL PATTERNS
     # ========================================================================
     # These URLs link to the authentication views defined in views.py
