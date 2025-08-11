@@ -22,52 +22,10 @@ from django.views.generic import CreateView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import login
-from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import redirect
 
 # Local Model Imports
-from .models import Library, Book, UserProfile
-
-# ============================================================================
-# ROLE-BASED ACCESS CONTROL VIEWS
-# ============================================================================
-# These views implement role-based access control using @user_passes_test
-# decorator with custom role checking functions
-# ============================================================================
-
-# Role check functions
-def is_admin(user):
-    """Check if user has Admin role"""
-    return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == UserProfile.ADMIN
-
-def is_librarian(user):
-    """Check if user has Librarian role"""
-    return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == UserProfile.LIBRARIAN
-
-def is_member(user):
-    """Check if user has Member role"""
-    return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == UserProfile.MEMBER
-
-# Role-based views with @user_passes_test decorators
-@user_passes_test(is_admin)
-def admin_view(request):
-    """Admin dashboard - only accessible by users with Admin role"""
-    return render(request, 'admin_view.html')
-
-@user_passes_test(is_librarian)
-def librarian_view(request):
-    """Librarian dashboard - only accessible by users with Librarian role"""
-    return render(request, 'librarian_view.html')
-
-@user_passes_test(is_member)
-def member_view(request):
-    """Member dashboard - only accessible by users with Member role"""
-    return render(request, 'member_view.html')
-
-# ============================================================================
-# END OF VIEWS
-# ============================================================================
-
+from .models import Library, Book
 
 # ============================================================================
 # LIBRARY MANAGEMENT VIEWS
@@ -219,3 +177,6 @@ class CustomLogoutView(LogoutView):
     """
     next_page = reverse_lazy('home')
 
+# ============================================================================
+# END OF VIEWS
+# ============================================================================
