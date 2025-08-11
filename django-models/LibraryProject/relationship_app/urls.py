@@ -21,9 +21,9 @@ urlpatterns = [
     # ========================================================================
     # CUSTOM PERMISSIONS URL PATTERNS - SECURED BOOK OPERATIONS
     # ========================================================================
-    path('books/add/', views.add_book, name='add_book'),  # Add book - requires can_add_book permission
-    path('books/edit/<int:book_id>/', views.edit_book, name='edit_book'),  # Edit book - requires can_change_book permission
-    path('books/delete/<int:book_id>/', views.delete_book, name='delete_book'),  # Delete book - requires can_delete_book permission
+    path('add_book/', views.add_book, name='add_book'),  # Add book - requires can_add_book permission
+    path('edit_book/<int:book_id>/', views.edit_book, name='edit_book'),  # Edit book - requires can_change_book permission
+    path('delete_book/<int:book_id>/', views.delete_book, name='delete_book'),  # Delete book - requires can_delete_book permission
     
     # ========================================================================
     # USER AUTHENTICATION URL PATTERNS
