@@ -7,7 +7,7 @@ def is_librarian(user):
     return (
         user.is_authenticated
         and hasattr(user, 'userprofile')
-        and user.userprofile.role == UserProfile.LIBRARIAN
+        and user.userprofile.role == 'Librarian'
     )
 
 @user_passes_test(is_librarian)
