@@ -198,14 +198,14 @@ def is_member(user):
     return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == UserProfile.MEMBER
 
 # Views with decorators
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, login_url='/login/')
 def admin_view(request):
     return render(request, 'admin_view.html')
 
-@user_passes_test(is_librarian)
+@user_passes_test(is_librarian, login_url='/login/')
 def librarian_view(request):
     return render(request, 'librarian_view.html')
 
-@user_passes_test(is_member)
+@user_passes_test(is_member, login_url='/login/')
 def member_view(request):
     return render(request, 'member_view.html')
