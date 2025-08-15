@@ -1,6 +1,5 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import Author, Book, Library, Librarian, UserProfile, CustomUser
+from .models import Author, Book, Library, Librarian
 
 # Register your models here.
 
@@ -25,31 +24,3 @@ class LibraryAdmin(admin.ModelAdmin):
 class LibrarianAdmin(admin.ModelAdmin):
     list_display = ['name', 'library']
     search_fields = ['name']
-
-@admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'role']
-    list_filter = ['role']
-    search_fields = ['user__username', 'user__email']
-
-# Custom User Admin
-@admin.register(CustomUser)
-class CustomUserAdmin(UserAdmin):
-    # Fields to display in the user list
-    list_display = ['username', 'email', 'first_name', 'last_name', 'date_of_birth', 'is_staff']
-    list_filter = ['is_staff', 'is_superuser', 'is_active', 'date_joined']
-    search_fields = ['username', 'first_name', 'last_name', 'email']
-    
-    # Fields to show when editing a user
-    fieldsets = UserAdmin.fieldsets + (
-        ('Custom Fields', {
-            'fields': ('date_of_birth', 'profile_photo')
-        }),
-    )
-    
-    # Fields to show when adding a new user
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        ('Custom Fields', {
-            'fields': ('date_of_birth', 'profile_photo')
-        }),
-    )
