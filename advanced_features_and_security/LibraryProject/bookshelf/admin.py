@@ -8,7 +8,6 @@ class BookAdmin(admin.ModelAdmin):
     search_fields = ('title', 'author')
 
 # Custom User Admin
-@admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     # Fields to display in the user list
     list_display = ['username', 'email', 'first_name', 'last_name', 'date_of_birth', 'is_staff']
@@ -30,10 +29,12 @@ class CustomUserAdmin(UserAdmin):
     )
 
 # UserProfile Admin
-@admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ['user', 'role']
     list_filter = ['role']
     search_fields = ['user__username', 'user__email']
 
+# Register models with admin
+admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(Book, BookAdmin)
