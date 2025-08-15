@@ -1,0 +1,28 @@
+{% extends 'bookshelf/base.html' %}
+
+{% block content %}
+<h1>{{ form_title }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <div style="margin: 10px 0;">
+        <label for="title">Title:</label><br>
+        <input type="text" id="title" name="title" value="{% if book %}{{ book.title }}{% endif %}" required style="width: 300px; padding: 5px;">
+    </div>
+    
+    <div style="margin: 10px 0;">
+        <label for="author">Author:</label><br>
+        <input type="text" id="author" name="author" value="{% if book %}{{ book.author }}{% endif %}" required style="width: 300px; padding: 5px;">
+    </div>
+    
+    <div style="margin: 10px 0;">
+        <label for="publication_year">Publication Year:</label><br>
+        <input type="number" id="publication_year" name="publication_year" value="{% if book %}{{ book.publication_year }}{% endif %}" required style="width: 150px; padding: 5px;">
+    </div>
+    
+    <div style="margin: 20px 0;">
+        <button type="submit" class="btn">{% if book %}Update{% else %}Create{% endif %} Book</button>
+        <a href="{% url 'book_list' %}" class="btn" style="background: #6c757d;">Cancel</a>
+    </div>
+</form>
+{% endblock %}

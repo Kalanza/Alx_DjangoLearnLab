@@ -1,0 +1,54 @@
+{% extends 'bookshelf/base.html' %}
+
+{% block content %}
+<h1>Book Library</h1>
+
+{% if books %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Publication Year</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+            <tr>
+                <td>{{ book.title }}</td>
+                <td>{{ book.author }}</td>
+                <td>{{ book.publication_year }}</td>
+                <td>
+                    {% if perms.bookshelf.can_view %}
+                        <a href="{% url 'book_detail' book.pk %}" class="btn">View</a>
+                    {% endif %}
+                    {% if perms.bookshelf.can_edit %}
+                        <a href="{% url 'book_edit' book.pk %}" class="btn">Edit</a>
+                    {% endif %}
+                    {% if perms.bookshelf.can_delete %}
+                        <a href="{% url 'book_delete' book.pk %}" class="btn btn-danger">Delete</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No books available in the library.</p>
+    {% if perms.bookshelf.can_create %}
+        <p><a href="{% url 'book_create' %}" class="btn">Add the first book</a></p>
+    {% endif %}
+{% endif %}
+
+<!-- Permission Debug Info (remove in production) -->
+<div style="margin-top: 20px; padding: 10px; background: #f9f9f9; border: 1px solid #ddd;">
+    <h3>Your Permissions:</h3>
+    <ul>
+        <li>Can View: {{ perms.bookshelf.can_view }}</li>
+        <li>Can Create: {{ perms.bookshelf.can_create }}</li>
+        <li>Can Edit: {{ perms.bookshelf.can_edit }}</li>
+        <li>Can Delete: {{ perms.bookshelf.can_delete }}</li>
+    </ul>
+</div>
+{% endblock %}

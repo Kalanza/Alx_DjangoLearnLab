@@ -273,7 +273,7 @@ def delete_book(request, book_id):
 # ============================================================================
 
 from django.contrib.auth.decorators import user_passes_test
-from .models import UserProfile
+from bookshelf.models import UserProfile
 
 def is_admin(user):
     """Check if user has Admin role."""

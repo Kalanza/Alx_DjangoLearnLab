@@ -1,0 +1,20 @@
+{% extends 'bookshelf/base.html' %}
+
+{% block content %}
+<h1>{{ book.title }}</h1>
+
+<div style="margin: 20px 0;">
+    <p><strong>Author:</strong> {{ book.author }}</p>
+    <p><strong>Publication Year:</strong> {{ book.publication_year }}</p>
+</div>
+
+<div>
+    <a href="{% url 'book_list' %}" class="btn">Back to List</a>
+    {% if perms.bookshelf.can_edit %}
+        <a href="{% url 'book_edit' book.pk %}" class="btn">Edit Book</a>
+    {% endif %}
+    {% if perms.bookshelf.can_delete %}
+        <a href="{% url 'book_delete' book.pk %}" class="btn btn-danger">Delete Book</a>
+    {% endif %}
+</div>
+{% endblock %}
