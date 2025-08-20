@@ -19,7 +19,8 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.utils.html import escape
 from .models import Book
-from .forms import BookForm, BookSearchForm, ExampleForm
+from .forms import BookForm, BookSearchForm
+from .forms import ExampleForm
 from django.urls import reverse
 
 # Create your views here.
