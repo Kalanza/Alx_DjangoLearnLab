@@ -27,7 +27,10 @@ class SecurityHeadersMiddleware:
     def add_security_headers(self, response):
         """
         Add comprehensive security headers to the response.
+        Implements HTTPS-aware security headers for maximum protection.
         """
+        from django.conf import settings
+        
         # Content Security Policy - Prevent XSS attacks
         csp_directives = [
             "default-src 'self'",
@@ -39,20 +42,60 @@ class SecurityHeadersMiddleware:
             "frame-src 'none'",
             "object-src 'none'",
             "base-uri 'self'",
-            "form-action 'self'",
-            "upgrade-insecure-requests"
+            "form-action 'self'"
         ]
+        
+        # Add upgrade-insecure-requests only if HTTPS is enabled
+        if getattr(settings, 'SECURE_SSL_REDIRECT', False):
+            csp_directives.append("upgrade-insecure-requests")
+        
         response['Content-Security-Policy'] = "; ".join(csp_directives)
         
-        # Additional security headers
+        # Core Security Headers
         response['X-Content-Type-Options'] = 'nosniff'  # Prevent MIME type sniffing
         response['X-Frame-Options'] = 'DENY'  # Prevent clickjacking
         response['X-XSS-Protection'] = '1; mode=block'  # Enable XSS filtering
         response['Referrer-Policy'] = 'strict-origin-when-cross-origin'  # Control referrer info
-        response['Permissions-Policy'] = 'geolocation=(), camera=(), microphone=()'  # Disable unnecessary features
+        
+        # Feature Policy / Permissions Policy - Disable unnecessary browser features
+        permissions_policy = [
+            'geolocation=()',
+            'camera=()',
+            'microphone=()',
+            'payment=()',
+            'usb=()',
+            'magnetometer=()',
+            'accelerometer=()',
+            'gyroscope=()'
+        ]
+        response['Permissions-Policy'] = ', '.join(permissions_policy)
+        
+        # HTTPS-specific headers
+        if getattr(settings, 'SECURE_SSL_REDIRECT', False):
+            # Strict Transport Security (HSTS) - Force HTTPS
+            hsts_max_age = getattr(settings, 'SECURE_HSTS_SECONDS', 31536000)
+            hsts_header = f'max-age={hsts_max_age}'
+            
+            if getattr(settings, 'SECURE_HSTS_INCLUDE_SUBDOMAINS', False):
+                hsts_header += '; includeSubDomains'
+            
+            if getattr(settings, 'SECURE_HSTS_PRELOAD', False):
+                hsts_header += '; preload'
+            
+            response['Strict-Transport-Security'] = hsts_header
+            
+            # Expect-CT header for certificate transparency
+            response['Expect-CT'] = 'max-age=86400, enforce'
         
         # Cache control for sensitive pages
-        if hasattr(response, 'url') and any(path in str(response.url) for path in ['/admin/', '/book/']):
+        request_path = getattr(response, 'url', '')
+        if any(path in str(request_path) for path in ['/admin/', '/book/', '/accounts/']):
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = '0'
+        else:
+            # For static content, allow caching but require revalidation
+            response['Cache-Control'] = 'public, max-age=3600, must-revalidate'
             response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
             response['Pragma'] = 'no-cache'
             response['Expires'] = '0'

@@ -15,17 +15,36 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Environment Configuration
+# ==============================================================================
+import os
+from pathlib import Path
+
+# Load environment variables from .env file
+def load_env_file(env_path):
+    """Load environment variables from a .env file"""
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                if line.strip() and not line.startswith('#'):
+                    key, value = line.strip().split('=', 1)
+                    os.environ.setdefault(key, value)
+
+# Determine environment and load appropriate .env file
+ENVIRONMENT = os.environ.get('DJANGO_ENVIRONMENT', 'development')
+env_file = BASE_DIR / f'.env.{ENVIRONMENT}'
+load_env_file(env_file)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-77a3&gjn_^!5ja_9s4@k9a$$4^h=yea_2w083)*=g_af_zpg96"
+SECRET_KEY = os.environ.get('SECRET_KEY', "django-insecure-77a3&gjn_^!5ja_9s4@k9a$$4^h=yea_2w083)*=g_af_zpg96")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False  # Set to False for production security
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['testserver', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',')
 
 
 # Application definition
@@ -142,19 +161,47 @@ SECURE_BROWSER_XSS_FILTER = True  # Enable XSS filtering in browsers
 SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent MIME type sniffing
 X_FRAME_OPTIONS = 'DENY'  # Prevent the site from being framed (clickjacking protection)
 
-# HTTPS and cookie security settings
-SECURE_SSL_REDIRECT = False  # Set to True in production with HTTPS
-SECURE_HSTS_SECONDS = 31536000  # HTTP Strict Transport Security (1 year)
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Apply HSTS to all subdomains
-SECURE_HSTS_PRELOAD = True  # Enable HSTS preload
+# HTTPS and SSL Security Configuration
+# ==============================================================================
 
-# Cookie security
-CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
-CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookie
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
-SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
-SESSION_COOKIE_AGE = 3600  # Session timeout (1 hour)
+# Environment-based HTTPS settings (configurable for dev/prod)
+import os
+USE_HTTPS = os.environ.get('USE_HTTPS', 'False').lower() == 'true'
+
+# HTTPS Enforcement Settings
+SECURE_SSL_REDIRECT = USE_HTTPS  # Redirect all HTTP to HTTPS in production
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # For proxy/load balancer setups
+
+# HTTP Strict Transport Security (HSTS) Configuration
+# HSTS tells browsers to ONLY use HTTPS for your site
+SECURE_HSTS_SECONDS = 31536000 if USE_HTTPS else 0  # 1 year in production, disabled in dev
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Apply HSTS to all subdomains
+SECURE_HSTS_PRELOAD = True  # Allow inclusion in browser HSTS preload lists
+
+# Additional HTTPS Security Headers
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent MIME type sniffing attacks
+SECURE_BROWSER_XSS_FILTER = True  # Enable browser XSS protection
+X_FRAME_OPTIONS = 'DENY'  # Prevent clickjacking by denying framing
+
+# Secure Cookie Configuration
+# ==============================================================================
+
+# CSRF Cookie Security
+CSRF_COOKIE_SECURE = USE_HTTPS  # Only send CSRF cookies over HTTPS in production
+CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF tokens
+CSRF_COOKIE_SAMESITE = 'Strict'  # Strict same-site policy for CSRF cookies
+
+# Session Cookie Security  
+SESSION_COOKIE_SECURE = USE_HTTPS  # Only send session cookies over HTTPS in production
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
+SESSION_COOKIE_SAMESITE = 'Strict'  # Strict same-site policy for session cookies
+SESSION_COOKIE_AGE = 3600  # Session timeout: 1 hour for security
 SESSION_SAVE_EVERY_REQUEST = True  # Refresh session on every request
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Clear sessions when browser closes
+
+# Additional Cookie Security
+CSRF_COOKIE_NAME = '__Host-csrftoken' if USE_HTTPS else 'csrftoken'  # Secure cookie naming
+SESSION_COOKIE_NAME = '__Host-sessionid' if USE_HTTPS else 'sessionid'  # Secure cookie naming
 
 # Additional security headers
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'  # Control referrer information
