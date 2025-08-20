@@ -13,6 +13,9 @@ urlpatterns = [
     path('books/<int:pk>/edit/', views.book_edit, name='book_edit'),
     path('books/<int:pk>/delete/', views.book_delete, name='book_delete'),
     
+    # Example secure form demonstration
+    path('example-form/', views.example_form_view, name='example_form'),
+    
     # Security reporting endpoint
     path('csp-report/', views.csp_report, name='csp_report'),
 ]

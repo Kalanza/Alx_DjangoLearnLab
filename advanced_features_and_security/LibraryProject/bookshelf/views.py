@@ -190,3 +190,37 @@ def csp_report(request):
         logger.warning(f'CSP violation reported: {request.body}')
     
     return HttpResponse(status=204)  # No content response
+
+
+@csrf_protect
+@require_http_methods(["GET", "POST"])
+def example_form_view(request):
+    """
+    Example view demonstrating secure form handling with ExampleForm.
+    Shows CSRF protection, input validation, and safe data processing.
+    """
+    if request.method == 'POST':
+        form = ExampleForm(request.POST)
+        if form.is_valid():
+            # Process the validated and sanitized data
+            name = form.cleaned_data['name']
+            email = form.cleaned_data['email']
+            message = form.cleaned_data['message']
+            
+            # In a real application, you might save to database or send email
+            # For demonstration, we'll just show a success message
+            messages.success(request, 
+                f'Thank you {escape(name)}! Your message has been received safely.')
+            
+            # Redirect to prevent form resubmission
+            return redirect('example_form')
+        else:
+            # Form validation failed - errors will be displayed in template
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = ExampleForm()
+    
+    return render(request, 'bookshelf/form_example.html', {
+        'form': form,
+        'form_title': 'Example Secure Form'
+    })
