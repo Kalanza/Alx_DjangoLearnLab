@@ -1,20 +1,46 @@
 {% extends 'bookshelf/base.html' %}
 
-{% block content %}
-<h1>{{ book.title }}</h1>
+{% block title %}{{ book.title|escape }} - Book Details{% endblock %}
 
-<div style="margin: 20px 0;">
-    <p><strong>Author:</strong> {{ book.author }}</p>
-    <p><strong>Publication Year:</strong> {{ book.publication_year }}</p>
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h1>{{ book.title|escape }}</h1>
+    
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <div style="margin-bottom: 15px;">
+            <strong>📖 Title:</strong> 
+            <span style="font-size: 1.1em;">{{ book.title|escape }}</span>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <strong>✍️ Author:</strong> 
+            <span style="font-size: 1.1em;">{{ book.author|escape }}</span>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <strong>📅 Publication Year:</strong> 
+            <span style="font-size: 1.1em;">{{ book.publication_year }}</span>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <strong>🆔 Book ID:</strong> 
+            <span style="font-size: 0.9em; color: #6c757d;">{{ book.pk }}</span>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px; text-align: center;">
+        <a href="{% url 'book_list' %}" class="btn btn-secondary">← Back to List</a>
+        {% if perms.bookshelf.can_edit %}
+            <a href="{% url 'book_edit' book.pk %}" class="btn btn-primary">✏️ Edit Book</a>
+        {% endif %}
+        {% if perms.bookshelf.can_delete %}
+            <a href="{% url 'book_delete' book.pk %}" class="btn btn-danger">🗑️ Delete Book</a>
+        {% endif %}
+    </div>
 </div>
 
-<div>
-    <a href="{% url 'book_list' %}" class="btn">Back to List</a>
-    {% if perms.bookshelf.can_edit %}
-        <a href="{% url 'book_edit' book.pk %}" class="btn">Edit Book</a>
-    {% endif %}
-    {% if perms.bookshelf.can_delete %}
-        <a href="{% url 'book_delete' book.pk %}" class="btn btn-danger">Delete Book</a>
-    {% endif %}
+<!-- Security: Add some metadata to prevent information leakage -->
+<div style="margin-top: 40px; font-size: 0.8em; color: #6c757d; text-align: center;">
+    <p>🔒 Secure book viewing - Content is properly escaped and validated</p>
 </div>
 {% endblock %}

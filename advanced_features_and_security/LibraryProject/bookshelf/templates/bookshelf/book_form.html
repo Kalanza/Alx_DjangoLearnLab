@@ -3,21 +3,48 @@
 {% block content %}
 <h1>{{ form_title }}</h1>
 
-<form method="post">
+<!-- Secure form using Django forms with built-in CSRF protection and validation -->
+<form method="post" novalidate>
     {% csrf_token %}
+    
+    <!-- Display form errors if any -->
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+    
+    <!-- Title field with validation -->
     <div style="margin: 10px 0;">
-        <label for="title">Title:</label><br>
-        <input type="text" id="title" name="title" value="{% if book %}{{ book.title }}{% endif %}" required style="width: 300px; padding: 5px;">
+        <label for="{{ form.title.id_for_label }}">{{ form.title.label }}:</label><br>
+        {{ form.title }}
+        {% if form.title.errors %}
+            <div class="field-error" style="color: #dc3545; font-size: 0.875em;">
+                {{ form.title.errors.0 }}
+            </div>
+        {% endif %}
     </div>
     
+    <!-- Author field with validation -->
     <div style="margin: 10px 0;">
-        <label for="author">Author:</label><br>
-        <input type="text" id="author" name="author" value="{% if book %}{{ book.author }}{% endif %}" required style="width: 300px; padding: 5px;">
+        <label for="{{ form.author.id_for_label }}">{{ form.author.label }}:</label><br>
+        {{ form.author }}
+        {% if form.author.errors %}
+            <div class="field-error" style="color: #dc3545; font-size: 0.875em;">
+                {{ form.author.errors.0 }}
+            </div>
+        {% endif %}
     </div>
     
+    <!-- Publication year field with validation -->
     <div style="margin: 10px 0;">
-        <label for="publication_year">Publication Year:</label><br>
-        <input type="number" id="publication_year" name="publication_year" value="{% if book %}{{ book.publication_year }}{% endif %}" required style="width: 150px; padding: 5px;">
+        <label for="{{ form.publication_year.id_for_label }}">{{ form.publication_year.label }}:</label><br>
+        {{ form.publication_year }}
+        {% if form.publication_year.errors %}
+            <div class="field-error" style="color: #dc3545; font-size: 0.875em;">
+                {{ form.publication_year.errors.0 }}
+            </div>
+        {% endif %}
     </div>
     
     <div style="margin: 20px 0;">
@@ -25,4 +52,34 @@
         <a href="{% url 'book_list' %}" class="btn" style="background: #6c757d;">Cancel</a>
     </div>
 </form>
+
+<!-- Add some basic styling for form controls -->
+<style>
+.form-control {
+    width: 300px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.form-control:focus {
+    border-color: #007bff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+.field-error {
+    margin-top: 5px;
+}
+.alert {
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+</style>
 {% endblock %}

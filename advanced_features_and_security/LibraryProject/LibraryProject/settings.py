@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-77a3&gjn_^!5ja_9s4@k9a$$4^h=yea_2w083)*=g_af_zpg96"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False  # Set to False for production security
 
 ALLOWED_HOSTS = ['testserver', 'localhost', '127.0.0.1']
 
@@ -43,6 +43,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "bookshelf.middleware.SecurityHeadersMiddleware",  # Custom security headers
+    "bookshelf.middleware.CSPReportingMiddleware",  # CSP reporting
+    "bookshelf.middleware.RequestLoggingMiddleware",  # Security logging
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -130,3 +133,115 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Custom User Model
 AUTH_USER_MODEL = 'bookshelf.CustomUser'
+
+# Security Settings
+# ==============================================================================
+
+# Security middleware and browser protections
+SECURE_BROWSER_XSS_FILTER = True  # Enable XSS filtering in browsers
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent MIME type sniffing
+X_FRAME_OPTIONS = 'DENY'  # Prevent the site from being framed (clickjacking protection)
+
+# HTTPS and cookie security settings
+SECURE_SSL_REDIRECT = False  # Set to True in production with HTTPS
+SECURE_HSTS_SECONDS = 31536000  # HTTP Strict Transport Security (1 year)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Apply HSTS to all subdomains
+SECURE_HSTS_PRELOAD = True  # Enable HSTS preload
+
+# Cookie security
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookie
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
+SESSION_COOKIE_AGE = 3600  # Session timeout (1 hour)
+SESSION_SAVE_EVERY_REQUEST = True  # Refresh session on every request
+
+# Additional security headers
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'  # Control referrer information
+
+# Content Security Policy (CSP) settings
+# Note: In production, consider using django-csp middleware for more advanced CSP
+CSP_DEFAULT_SRC = "'self'"
+CSP_SCRIPT_SRC = "'self'"
+CSP_STYLE_SRC = "'self' 'unsafe-inline'"  # Allow inline styles for basic styling
+CSP_IMG_SRC = "'self' data:"
+CSP_FONT_SRC = "'self'"
+CSP_CONNECT_SRC = "'self'"
+CSP_FRAME_SRC = "'none'"
+CSP_OBJECT_SRC = "'none'"
+
+# Password validation enhancement
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 12,  # Increased minimum password length
+        }
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
+
+# Login security
+LOGIN_ATTEMPTS_LIMIT = 5  # Custom setting for login attempt limits
+LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutes timeout after failed attempts
+
+# Logging Configuration for Security Monitoring
+# ==============================================================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'security': {
+            'format': 'SECURITY {levelname} {asctime} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'security.log',
+            'formatter': 'verbose',
+        },
+        'security_file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'security_alerts.log',
+            'formatter': 'security',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'security': {
+            'handlers': ['security_file', 'console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'security.csp': {
+            'handlers': ['security_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}
