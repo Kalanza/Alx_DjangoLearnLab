@@ -119,3 +119,67 @@ class BookSearchForm(forms.Form):
             if len(query) > 200:
                 raise forms.ValidationError("Search query is too long.")
         return query
+
+
+class ExampleForm(forms.Form):
+    """
+    Example form demonstrating Django security best practices.
+    This form shows how to implement secure input validation and CSRF protection.
+    """
+    name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your name',
+            'required': True
+        }),
+        help_text="Enter your full name (2-100 characters)"
+    )
+    
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your email',
+            'required': True
+        }),
+        help_text="Enter a valid email address"
+    )
+    
+    message = forms.CharField(
+        max_length=500,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your message',
+            'rows': 4,
+            'required': True
+        }),
+        help_text="Enter your message (10-500 characters)"
+    )
+    
+    def clean_name(self):
+        """
+        Validate and sanitize the name field.
+        """
+        name = self.cleaned_data.get('name')
+        if name:
+            name = name.strip()
+            if len(name) < 2:
+                raise forms.ValidationError("Name must be at least 2 characters long.")
+            # Security: prevent HTML/script injection
+            if '<' in name or '>' in name or 'script' in name.lower():
+                raise forms.ValidationError("Name contains invalid characters.")
+        return name
+    
+    def clean_message(self):
+        """
+        Validate and sanitize the message field.
+        """
+        message = self.cleaned_data.get('message')
+        if message:
+            message = message.strip()
+            if len(message) < 10:
+                raise forms.ValidationError("Message must be at least 10 characters long.")
+            # Security: prevent HTML/script injection
+            if '<script' in message.lower() or '</script' in message.lower():
+                raise forms.ValidationError("Message contains invalid content.")
+        return message
