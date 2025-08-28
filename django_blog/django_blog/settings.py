@@ -125,6 +125,9 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+# Static files collection directory (for production)
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 # Login/Logout URLs
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
