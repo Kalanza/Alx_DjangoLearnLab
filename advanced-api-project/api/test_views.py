@@ -1009,3 +1009,253 @@ class ResponseFormatTestCase(APITestCase):
         # Error response should contain field-specific errors
         self.assertIn('title', response.data)
         self.assertIsInstance(response.data['title'], list)
+
+
+class SessionBasedAuthenticationTestCase(APITestCase):
+    """Test session-based authentication using self.client.login."""
+    
+    def setUp(self):
+        """Set up test data for session-based authentication tests."""
+        # Create test users
+        self.user = User.objects.create_user(
+            username='sessionuser',
+            password='sessionpass123',
+            email='session@test.com'
+        )
+        self.superuser = User.objects.create_superuser(
+            username='admin',
+            password='adminpass123',
+            email='admin@test.com'
+        )
+        
+        # Create test data
+        self.author = Author.objects.create(name="Session Test Author")
+        self.book = Book.objects.create(
+            title="Session Test Book",
+            publication_year=2020,
+            author=self.author
+        )
+        
+        self.client = APIClient()
+    
+    def test_book_create_with_session_login(self):
+        """Test book creation using session-based authentication with self.client.login."""
+        # Use session-based authentication
+        login_successful = self.client.login(
+            username='sessionuser', 
+            password='sessionpass123'
+        )
+        self.assertTrue(login_successful)
+        
+        url = reverse('book-create')
+        data = {
+            'title': 'Book Created with Session Auth',
+            'publication_year': 2022,
+            'author': self.author.pk
+        }
+        
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('book', response.data)
+        self.assertEqual(response.data['book']['title'], 'Book Created with Session Auth')
+        
+        # Verify book was actually created
+        self.assertTrue(Book.objects.filter(title='Book Created with Session Auth').exists())
+        
+        # Logout
+        self.client.logout()
+    
+    def test_book_update_with_session_login(self):
+        """Test book update using session-based authentication with self.client.login."""
+        # Use session-based authentication
+        login_successful = self.client.login(
+            username='sessionuser',
+            password='sessionpass123'
+        )
+        self.assertTrue(login_successful)
+        
+        url = reverse('book-update', kwargs={'pk': self.book.pk})
+        data = {
+            'title': 'Updated via Session Auth',
+            'publication_year': 2021,
+            'author': self.author.pk
+        }
+        
+        response = self.client.put(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verify book was actually updated
+        updated_book = Book.objects.get(pk=self.book.pk)
+        self.assertEqual(updated_book.title, 'Updated via Session Auth')
+        self.assertEqual(updated_book.publication_year, 2021)
+        
+        # Logout
+        self.client.logout()
+    
+    def test_book_delete_with_session_login(self):
+        """Test book deletion using session-based authentication with self.client.login."""
+        # Create a book specifically for deletion
+        book_to_delete = Book.objects.create(
+            title='Book for Session Delete',
+            publication_year=2020,
+            author=self.author
+        )
+        
+        # Use session-based authentication
+        login_successful = self.client.login(
+            username='sessionuser',
+            password='sessionpass123'
+        )
+        self.assertTrue(login_successful)
+        
+        url = reverse('book-delete', kwargs={'pk': book_to_delete.pk})
+        response = self.client.delete(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        # Verify book was actually deleted
+        self.assertFalse(Book.objects.filter(pk=book_to_delete.pk).exists())
+        
+        # Logout
+        self.client.logout()
+    
+    def test_author_create_with_session_login(self):
+        """Test author creation using session-based authentication with self.client.login."""
+        # Use session-based authentication
+        login_successful = self.client.login(
+            username='sessionuser',
+            password='sessionpass123'
+        )
+        self.assertTrue(login_successful)
+        
+        url = reverse('author-list-create')
+        data = {'name': 'Author Created with Session'}
+        
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['name'], 'Author Created with Session')
+        
+        # Verify author was actually created
+        self.assertTrue(Author.objects.filter(name='Author Created with Session').exists())
+        
+        # Logout
+        self.client.logout()
+    
+    def test_unauthorized_access_without_login(self):
+        """Test that operations fail without session login."""
+        # Don't login, attempt operations
+        
+        # Test book creation
+        url = reverse('book-create')
+        data = {
+            'title': 'Unauthorized Book',
+            'publication_year': 2020,
+            'author': self.author.pk
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+        
+        # Test author creation
+        url = reverse('author-list-create')
+        data = {'name': 'Unauthorized Author'}
+        
+        response = self.client.post(url, data, format='json')
+        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+    
+    def test_invalid_login_credentials(self):
+        """Test login with invalid credentials."""
+        # Attempt login with wrong password
+        login_successful = self.client.login(
+            username='sessionuser',
+            password='wrongpassword'
+        )
+        self.assertFalse(login_successful)
+        
+        # Attempt login with non-existent user
+        login_successful = self.client.login(
+            username='nonexistentuser',
+            password='somepassword'
+        )
+        self.assertFalse(login_successful)
+    
+    def test_superuser_access_with_session_login(self):
+        """Test superuser access using session-based authentication."""
+        # Login as superuser
+        login_successful = self.client.login(
+            username='admin',
+            password='adminpass123'
+        )
+        self.assertTrue(login_successful)
+        
+        # Test that superuser can create books
+        url = reverse('book-create')
+        data = {
+            'title': 'Superuser Book',
+            'publication_year': 2023,
+            'author': self.author.pk
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        # Test that superuser can create authors
+        url = reverse('author-list-create')
+        data = {'name': 'Superuser Author'}
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        # Logout
+        self.client.logout()
+    
+    def test_session_persistence_across_requests(self):
+        """Test that session persists across multiple requests."""
+        # Login once
+        login_successful = self.client.login(
+            username='sessionuser',
+            password='sessionpass123'
+        )
+        self.assertTrue(login_successful)
+        
+        # Make multiple authenticated requests
+        # First request - create a book
+        url = reverse('book-create')
+        data = {
+            'title': 'First Session Book',
+            'publication_year': 2020,
+            'author': self.author.pk
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        # Second request - create another book (should still be authenticated)
+        data = {
+            'title': 'Second Session Book',
+            'publication_year': 2021,
+            'author': self.author.pk
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        # Third request - create an author (should still be authenticated)
+        url = reverse('author-list-create')
+        data = {'name': 'Session Persistent Author'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        # Logout
+        self.client.logout()
+        
+        # Verify logout - subsequent request should fail
+        url = reverse('book-create')
+        data = {
+            'title': 'Post-Logout Book',
+            'publication_year': 2022,
+            'author': self.author.pk
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
