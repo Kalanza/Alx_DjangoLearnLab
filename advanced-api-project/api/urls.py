@@ -74,11 +74,25 @@ urlpatterns = [
         name='book-update'
     ),
     
+    # Book update (alternative URL pattern for compatibility)
+    path(
+        'books/update/', 
+        views.BookUpdateView.as_view(), 
+        name='book-update-simple'
+    ),
+    
     # Book deletion (separate endpoint)
     path(
         'books/<int:pk>/delete/', 
         views.BookDeleteView.as_view(), 
         name='book-delete'
+    ),
+    
+    # Book deletion (alternative URL pattern for compatibility)
+    path(
+        'books/delete/', 
+        views.BookDeleteView.as_view(), 
+        name='book-delete-simple'
     ),
     
     # =================================================================
