@@ -1,0 +1,75 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Welcome to Django Blog{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1>Welcome to Django Blog</h1>
+    <p>This is a comprehensive Django blog project setup with all the essential components:</p>
+    
+    <div class="features">
+        <h2>Project Features:</h2>
+        <ul>
+            <li>✅ Django project and app created</li>
+            <li>✅ Post model with title, content, published_date, and author</li>
+            <li>✅ Database migrations completed</li>
+            <li>✅ Static files (CSS, JavaScript) configured</li>
+            <li>✅ Templates directory structured</li>
+            <li>✅ Admin interface configured</li>
+            <li>✅ Basic URL routing setup</li>
+        </ul>
+    </div>
+    
+    <div class="next-steps">
+        <h2>Next Steps:</h2>
+        <p>You can now:</p>
+        <ul>
+            <li>Access the admin panel at <a href="/admin/">/admin/</a> (username: admin)</li>
+            <li>Create blog posts through the admin interface</li>
+            <li>Develop more views and templates</li>
+            <li>Add user authentication and registration</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+.welcome-section {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.features, .next-steps {
+    background: white;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.features ul, .next-steps ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.features li, .next-steps li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.features li:last-child, .next-steps li:last-child {
+    border-bottom: none;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h2 {
+    color: #555;
+    margin-bottom: 15px;
+}
+</style>
+{% endblock %}
