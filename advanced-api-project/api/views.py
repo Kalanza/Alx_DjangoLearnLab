@@ -14,6 +14,7 @@ Features:
 """
 
 from rest_framework import generics, status, permissions, filters
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
@@ -41,26 +42,15 @@ class AuthorListCreateView(generics.ListCreateAPIView):
     - POST: Creates a new author with validation
     - Search functionality by author name
     - Ordering by name (ascending/descending)
-    - Permission: Read access for all, create requires authentication
+    - Permission: IsAuthenticatedOrReadOnly - read access for all, create requires authentication
     """
     queryset = Author.objects.all().prefetch_related('books')
     serializer_class = AuthorSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Using the specific permission class
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name']
     ordering_fields = ['name']
     ordering = ['name']  # Default ordering
-    
-    def get_permissions(self):
-        """
-        Instantiate and return the list of permissions for this view.
-        GET requests: Allow any user
-        POST requests: Require authentication
-        """
-        if self.request.method == 'POST':
-            permission_classes = [permissions.IsAuthenticated]
-        else:
-            permission_classes = [permissions.AllowAny]
-        return [permission() for permission in permission_classes]
     
     def perform_create(self, serializer):
         """
@@ -92,20 +82,11 @@ class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
     - GET: Returns specific author with nested books
     - PUT/PATCH: Updates author information
     - DELETE: Removes author and cascades to books
-    - Permission: Read access for all, modify/delete requires authentication
+    - Permission: IsAuthenticatedOrReadOnly - read access for all, modify/delete requires authentication
     """
     queryset = Author.objects.all().prefetch_related('books')
     serializer_class = AuthorSerializer
-    
-    def get_permissions(self):
-        """
-        Custom permissions based on HTTP method.
-        """
-        if self.request.method == 'GET':
-            permission_classes = [permissions.AllowAny]
-        else:
-            permission_classes = [permissions.IsAuthenticated]
-        return [permission() for permission in permission_classes]
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Using the specific permission class
     
     def perform_update(self, serializer):
         """
@@ -238,7 +219,7 @@ class BookCreateView(generics.CreateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]  # Using the specific permission class
     
     def perform_create(self, serializer):
         """
@@ -277,7 +258,7 @@ class BookUpdateView(generics.UpdateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]  # Using the specific permission class
     
     def perform_update(self, serializer):
         """
@@ -318,7 +299,7 @@ class BookDeleteView(generics.DestroyAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]  # Using the specific permission class
     
     def perform_destroy(self, instance):
         """
