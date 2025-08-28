@@ -20,9 +20,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from django.db.models import Q
+from django.db.models import Q, Count
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
+from .filters import BookFilter, AuthorFilter
 import logging
 
 # Set up logging
@@ -35,22 +36,84 @@ logger = logging.getLogger(__name__)
 
 class AuthorListCreateView(generics.ListCreateAPIView):
     """
-    Combined view for listing all authors and creating new authors.
+    Enhanced author operations with filtering, searching, and ordering.
     
     Features:
     - GET: Returns paginated list of all authors with their nested books
     - POST: Creates a new author with validation
+    - Advanced filtering by author name and book count
     - Search functionality by author name
-    - Ordering by name (ascending/descending)
+    - Ordering by name and book count
     - Permission: IsAuthenticatedOrReadOnly - read access for all, create requires authentication
+    
+    Filtering Options:
+    - name: Filter by author name (partial match)
+    - name_starts_with: Filter by name prefix
+    - has_books: Filter authors who have/haven't written books
+    - book_count_min: Filter authors with minimum number of books
+    
+    Ordering Options:
+    - name: Order by author name
+    - book_count: Order by number of books written
+    - Use '-' prefix for descending order
+    
+    Example URLs:
+    - /api/authors/?name_starts_with=J&ordering=name
+    - /api/authors/?has_books=true&ordering=-book_count
+    - /api/authors/?book_count_min=2
     """
     queryset = Author.objects.all().prefetch_related('books')
     serializer_class = AuthorSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]  # Using the specific permission class
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name']
-    ordering_fields = ['name']
+    
+    # Configure filtering, searching, and ordering backends
+    filter_backends = [
+        DjangoFilterBackend, 
+        filters.SearchFilter, 
+        filters.OrderingFilter
+    ]
+    
+    # Use custom filter class
+    filterset_class = AuthorFilter
+    
+    # Search configuration
+    search_fields = [
+        'name',     # Search in author name
+        '^name',    # Name starts with (higher priority)
+        '=name',    # Exact name match (highest priority)
+    ]
+    
+    # Ordering configuration
+    ordering_fields = ['name', 'id']
     ordering = ['name']  # Default ordering
+    
+    def get_queryset(self):
+        """
+        Enhanced queryset with book count annotation for ordering.
+        """
+        queryset = super().get_queryset()
+        
+        # Add book count annotation for ordering and filtering
+        queryset = queryset.annotate(
+            book_count=Count('books')
+        )
+        
+        # Optimize with prefetch_related for related books
+        queryset = queryset.prefetch_related('books')
+        
+        return queryset
+    
+    def get_ordering(self):
+        """
+        Custom ordering to handle book_count ordering.
+        """
+        ordering = self.request.query_params.get('ordering')
+        if ordering:
+            # Handle book_count ordering
+            if ordering in ['book_count', '-book_count']:
+                return [ordering]
+        
+        return super().get_ordering()
     
     def perform_create(self, serializer):
         """
@@ -63,15 +126,72 @@ class AuthorListCreateView(generics.ListCreateAPIView):
     
     def list(self, request, *args, **kwargs):
         """
-        Custom list method with additional response information.
+        Enhanced list method with additional response information.
         """
-        response = super().list(request, *args, **kwargs)
-        response.data = {
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Paginate the queryset
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response({
+                'message': 'Authors retrieved successfully',
+                'total_count': queryset.count(),
+                'current_page_count': len(serializer.data),
+                'filters_applied': self._get_applied_filters(request),
+                'ordering_applied': request.query_params.get('ordering', 'name'),
+                'search_query': request.query_params.get('search', None),
+                'authors': serializer.data
+            })
+        
+        # Non-paginated response
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
             'message': 'Authors retrieved successfully',
-            'count': len(response.data),
-            'authors': response.data
+            'total_count': queryset.count(),
+            'filters_applied': self._get_applied_filters(request),
+            'ordering_applied': request.query_params.get('ordering', 'name'),
+            'search_query': request.query_params.get('search', None),
+            'available_filters': self._get_available_filters(),
+            'authors': serializer.data
+        })
+    
+    def _get_applied_filters(self, request):
+        """
+        Get information about currently applied filters.
+        """
+        applied_filters = {}
+        filter_params = ['name', 'name_starts_with', 'has_books', 'book_count_min', 'search']
+        
+        for param in filter_params:
+            value = request.query_params.get(param)
+            if value is not None:
+                applied_filters[param] = value
+        
+        return applied_filters
+    
+    def _get_available_filters(self):
+        """
+        Provide information about available filtering options.
+        """
+        return {
+            'text_filters': {
+                'name': 'Filter by author name (partial match)',
+                'name_starts_with': 'Filter by name prefix',
+                'search': 'Search in author name'
+            },
+            'boolean_filters': {
+                'has_books': 'Filter authors who have written books (true/false)'
+            },
+            'numeric_filters': {
+                'book_count_min': 'Filter authors with at least this many books'
+            },
+            'ordering_options': {
+                'name': 'Order by author name',
+                'book_count': 'Order by number of books written',
+                'note': 'Use "-" prefix for descending order'
+            }
         }
-        return response
 
 
 class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -112,67 +232,192 @@ class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class BookListView(generics.ListAPIView):
     """
-    List all books with advanced filtering and search capabilities.
+    Advanced book listing with comprehensive filtering, searching, and ordering.
     
     Features:
     - GET: Returns paginated list of all books
-    - Advanced filtering by author, publication year, title
-    - Search functionality across title and author name
-    - Ordering by multiple fields
+    - Advanced filtering by title, author, publication year, decade
+    - Multi-field search functionality
+    - Flexible ordering capabilities
+    - Custom filters for complex queries
     - Permission: Open access for reading
+    
+    Filtering Options:
+    - title: Filter by book title (partial match)
+    - title_exact: Filter by exact book title
+    - title_starts_with: Filter by title prefix
+    - author_name: Filter by author name (partial match)
+    - author_id: Filter by specific author ID
+    - publication_year: Filter by exact year
+    - year_after: Books published after specified year
+    - year_before: Books published before specified year
+    - year_range: Books within year range (year_range_min, year_range_max)
+    - decade: Filter by decade (1990s, 2000s, etc.)
+    - search: Multi-field search across title and author
+    - has_multiple_books_by_author: Books by prolific authors
+    
+    Ordering Options:
+    - title: Order by book title
+    - publication_year: Order by publication year
+    - author__name: Order by author name
+    - Use '-' prefix for descending order (e.g., -publication_year)
+    
+    Example URLs:
+    - /api/books/?search=Harry&ordering=publication_year
+    - /api/books/?author_name=Rowling&year_after=1990
+    - /api/books/?decade=1990s&ordering=-publication_year
+    - /api/books/?title_starts_with=The&has_multiple_books_by_author=true
     """
     queryset = Book.objects.all().select_related('author')
     serializer_class = BookSerializer
     permission_classes = [permissions.AllowAny]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    
+    # Configure filtering, searching, and ordering backends
+    filter_backends = [
+        DjangoFilterBackend, 
+        filters.SearchFilter, 
+        filters.OrderingFilter
+    ]
+    
+    # Use custom filter class for advanced filtering
+    filterset_class = BookFilter
+    
+    # Additional simple filters (for backward compatibility)
     filterset_fields = ['author', 'publication_year']
-    search_fields = ['title', 'author__name']
-    ordering_fields = ['title', 'publication_year', 'author__name']
-    ordering = ['title']
+    
+    # Search configuration
+    search_fields = [
+        'title',           # Search in book title
+        'author__name',    # Search in author name
+        '^title',          # Title starts with (higher priority)
+        '=title',          # Exact title match (highest priority)
+    ]
+    
+    # Ordering configuration
+    ordering_fields = [
+        'title',
+        'publication_year', 
+        'author__name',
+        'id'  # Allow ordering by ID for consistent pagination
+    ]
+    ordering = ['title']  # Default ordering
     
     def get_queryset(self):
         """
-        Custom queryset with additional filtering options.
+        Enhanced queryset with optimizations and additional filtering logic.
         """
         queryset = super().get_queryset()
         
-        # Custom filter: books published after a certain year
-        year_after = self.request.query_params.get('year_after', None)
-        if year_after:
-            try:
-                queryset = queryset.filter(publication_year__gt=int(year_after))
-            except ValueError:
-                pass  # Ignore invalid year format
+        # Optimize query with select_related for foreign keys
+        queryset = queryset.select_related('author')
         
-        # Custom filter: books published before a certain year
-        year_before = self.request.query_params.get('year_before', None)
-        if year_before:
-            try:
-                queryset = queryset.filter(publication_year__lt=int(year_before))
-            except ValueError:
-                pass
+        # Custom filter: Recently published books (last 10 years)
+        recent_only = self.request.query_params.get('recent_only', None)
+        if recent_only and recent_only.lower() == 'true':
+            from datetime import date
+            current_year = date.today().year
+            queryset = queryset.filter(publication_year__gte=current_year - 10)
+        
+        # Custom filter: Classic books (published before 1950)
+        classics_only = self.request.query_params.get('classics_only', None)
+        if classics_only and classics_only.lower() == 'true':
+            queryset = queryset.filter(publication_year__lt=1950)
+        
+        # Custom filter: Books with long titles
+        long_titles_only = self.request.query_params.get('long_titles_only', None)
+        if long_titles_only and long_titles_only.lower() == 'true':
+            queryset = queryset.extra(where=["LENGTH(title) > 20"])
         
         return queryset
     
     def list(self, request, *args, **kwargs):
         """
-        Custom list response with metadata.
+        Enhanced list response with comprehensive metadata and filtering information.
         """
-        response = super().list(request, *args, **kwargs)
+        # Get the filtered queryset
         queryset = self.filter_queryset(self.get_queryset())
         
-        response.data = {
+        # Paginate the queryset
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response({
+                'message': 'Books retrieved successfully',
+                'total_count': queryset.count(),
+                'current_page_count': len(serializer.data),
+                'filters_applied': self._get_applied_filters(request),
+                'ordering_applied': request.query_params.get('ordering', 'title'),
+                'search_query': request.query_params.get('search', None),
+                'books': serializer.data
+            })
+        
+        # Non-paginated response
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
             'message': 'Books retrieved successfully',
             'total_count': queryset.count(),
-            'filters_applied': {
-                'search': request.query_params.get('search', None),
-                'author': request.query_params.get('author', None),
-                'year_after': request.query_params.get('year_after', None),
-                'year_before': request.query_params.get('year_before', None),
+            'filters_applied': self._get_applied_filters(request),
+            'ordering_applied': request.query_params.get('ordering', 'title'),
+            'search_query': request.query_params.get('search', None),
+            'available_filters': self._get_available_filters(),
+            'books': serializer.data
+        })
+    
+    def _get_applied_filters(self, request):
+        """
+        Get information about currently applied filters.
+        """
+        applied_filters = {}
+        
+        # Check for each possible filter parameter
+        filter_params = [
+            'title', 'title_exact', 'title_starts_with',
+            'author_name', 'author_id', 'author',
+            'publication_year', 'year_after', 'year_before',
+            'year_range_min', 'year_range_max', 'decade',
+            'search', 'has_multiple_books_by_author',
+            'recent_only', 'classics_only', 'long_titles_only'
+        ]
+        
+        for param in filter_params:
+            value = request.query_params.get(param)
+            if value is not None:
+                applied_filters[param] = value
+        
+        return applied_filters
+    
+    def _get_available_filters(self):
+        """
+        Provide information about available filtering options.
+        """
+        return {
+            'text_filters': {
+                'title': 'Filter by book title (partial match)',
+                'title_exact': 'Filter by exact book title',
+                'title_starts_with': 'Filter by title prefix',
+                'author_name': 'Filter by author name (partial match)',
+                'search': 'Search across title and author name'
             },
-            'books': response.data
+            'numeric_filters': {
+                'author_id': 'Filter by specific author ID',
+                'publication_year': 'Filter by exact publication year',
+                'year_after': 'Books published after specified year',
+                'year_before': 'Books published before specified year'
+            },
+            'special_filters': {
+                'decade': 'Filter by decade (1990s, 2000s, etc.)',
+                'has_multiple_books_by_author': 'Books by prolific authors',
+                'recent_only': 'Books published in the last 10 years',
+                'classics_only': 'Books published before 1950',
+                'long_titles_only': 'Books with titles longer than 20 characters'
+            },
+            'ordering_options': {
+                'title': 'Order by book title',
+                'publication_year': 'Order by publication year',
+                'author__name': 'Order by author name',
+                'note': 'Use "-" prefix for descending order (e.g., -publication_year)'
+            }
         }
-        return response
 
 
 class BookDetailView(generics.RetrieveAPIView):
