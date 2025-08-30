@@ -198,17 +198,17 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         """Set the author and post before saving."""
         form.instance.author = self.request.user
-        form.instance.post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        form.instance.post = get_object_or_404(Post, pk=self.kwargs['pk'])
         messages.success(self.request, 'Your comment has been added successfully!')
         return super().form_valid(form)
 
     def get_success_url(self):
         """Redirect to the post detail page after creating comment."""
-        return reverse('post-detail', kwargs={'pk': self.kwargs['post_id']})
+        return reverse('post-detail', kwargs={'pk': self.kwargs['pk']})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['post'] = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        context['post'] = get_object_or_404(Post, pk=self.kwargs['pk'])
         context['title'] = 'Add Comment'
         return context
 
