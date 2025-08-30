@@ -54,6 +54,27 @@
             {% endif %}
         </div>
         
+        <div class="form-group">
+            <label for="{{ form.tags_input.id_for_label }}" class="form-label">
+                {{ form.tags_input.label }}
+                <i class="fas fa-tags"></i>
+            </label>
+            {{ form.tags_input }}
+            {% if form.tags_input.help_text %}
+                <small class="form-text">{{ form.tags_input.help_text }}</small>
+            {% endif %}
+            {% if form.tags_input.errors %}
+                <div class="error-messages">
+                    {% for error in form.tags_input.errors %}
+                        <p class="error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="tags-preview" id="tags-preview">
+                <!-- Tags preview will be dynamically updated here -->
+            </div>
+        </div>
+        
         {% if form.non_field_errors %}
             <div class="error-messages">
                 {% for error in form.non_field_errors %}
@@ -86,7 +107,55 @@
             <li>Break up long paragraphs for better readability</li>
             <li>You can use basic HTML tags for formatting</li>
             <li>Preview your post after saving to see how it looks</li>
+            <li>Add relevant tags to help users discover your content</li>
         </ul>
     </div>
 </div>
+
+<script>
+// Tags preview functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const tagsInput = document.getElementById('{{ form.tags_input.id_for_label }}');
+    const tagsPreview = document.getElementById('tags-preview');
+    
+    function updateTagsPreview() {
+        const tagsValue = tagsInput.value.trim();
+        if (tagsValue) {
+            const tags = tagsValue.split(',').map(tag => tag.trim()).filter(tag => tag);
+            tagsPreview.innerHTML = tags.map(tag => 
+                `<span class="tag-preview">${tag}</span>`
+            ).join('');
+        } else {
+            tagsPreview.innerHTML = '';
+        }
+    }
+    
+    if (tagsInput) {
+        tagsInput.addEventListener('input', updateTagsPreview);
+        updateTagsPreview(); // Initialize preview
+    }
+});
+</script>
+
+<style>
+.tags-preview {
+    margin-top: 0.5rem;
+}
+
+.tag-preview {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    margin: 0.25rem 0.25rem 0 0;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.form-group label .fas {
+    margin-left: 0.5rem;
+    color: #6c757d;
+}
+</style>
 {% endblock %}

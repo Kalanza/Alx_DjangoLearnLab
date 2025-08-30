@@ -22,6 +22,12 @@ urlpatterns = [
     # User Posts
     path('user/<str:username>/posts/', views.UserPostListView.as_view(), name='user-posts'),
     
+    # Search and Tag URLs
+    path('search/', views.SearchResultsView.as_view(), name='search-results'),
+    path('search-posts/', views.search_posts, name='search-posts'),
+    path('tags/', views.TagListView.as_view(), name='tag-list'),
+    path('tags/<str:tag_name>/', views.PostsByTagView.as_view(), name='posts-by-tag'),
+    
     # Authentication URLs
     path('login/', auth_views.LoginView.as_view(template_name='blog/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='blog/logout.html'), name='logout'),

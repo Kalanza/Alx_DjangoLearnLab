@@ -12,8 +12,9 @@ from django.views.generic import (
     DeleteView
 )
 from django.urls import reverse_lazy, reverse
-from .models import Post, Comment
-from .forms import CustomUserCreationForm, UserUpdateForm, CommentForm
+from django.db.models import Q, Count
+from .models import Post, Comment, Tag
+from .forms import CustomUserCreationForm, UserUpdateForm, CommentForm, PostForm, SearchForm
 
 # Create your views here.
 
@@ -96,10 +97,10 @@ class PostDetailView(DetailView):
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     """
-    Allow authenticated users to create new blog posts.
+    Allow authenticated users to create new blog posts with tags.
     """
     model = Post
-    fields = ['title', 'content']
+    form_class = PostForm
     template_name = 'blog/post_form.html'
 
     def form_valid(self, form):
@@ -116,10 +117,10 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
-    Allow post authors to edit their posts.
+    Allow post authors to edit their posts and tags.
     """
     model = Post
-    fields = ['title', 'content']
+    form_class = PostForm
     template_name = 'blog/post_form.html'
 
     def form_valid(self, form):
@@ -293,3 +294,169 @@ def add_comment(request, post_id):
         'post': post,
         'title': 'Add Comment'
     })
+
+
+# Search and Tag Views
+class SearchResultsView(ListView):
+    """
+    Display search results based on user query.
+    """
+    model = Post
+    template_name = 'blog/search_results.html'
+    context_object_name = 'posts'
+    paginate_by = 5
+
+    def get_queryset(self):
+        """Filter posts based on search query."""
+        form = SearchForm(self.request.GET)
+        queryset = Post.objects.none()
+
+        if form.is_valid():
+            query = form.cleaned_data['query']
+            search_in = form.cleaned_data.get('search_in', ['title', 'content', 'tags'])
+
+            if query:
+                # Build Q objects for different search criteria
+                q_objects = Q()
+
+                if 'title' in search_in:
+                    q_objects |= Q(title__icontains=query)
+                
+                if 'content' in search_in:
+                    q_objects |= Q(content__icontains=query)
+                
+                if 'tags' in search_in:
+                    q_objects |= Q(tags__name__icontains=query)
+
+                queryset = Post.objects.filter(q_objects).distinct().order_by('-published_date')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = SearchForm(self.request.GET)
+        context['form'] = form
+        context['query'] = self.request.GET.get('query', '')
+        context['title'] = f'Search Results for "{context["query"]}"' if context['query'] else 'Search Results'
+        return context
+
+
+class PostsByTagView(ListView):
+    """
+    Display all posts filtered by a specific tag.
+    """
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    paginate_by = 5
+
+    def get_queryset(self):
+        """Filter posts by tag name."""
+        tag_name = self.kwargs.get('tag_name')
+        return Post.objects.filter(tags__name__iexact=tag_name).order_by('-published_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag_name = self.kwargs.get('tag_name')
+        context['tag'] = get_object_or_404(Tag, name__iexact=tag_name)
+        context['title'] = f'Posts tagged with "{tag_name}"'
+        return context
+
+
+def search_posts(request):
+    """
+    Function-based search view that handles both GET and POST requests.
+    """
+    form = SearchForm(request.GET or None)
+    posts = []
+    query = ''
+
+    if request.method == 'GET' and form.is_valid():
+        query = form.cleaned_data['query']
+        search_in = form.cleaned_data.get('search_in', ['title', 'content', 'tags'])
+
+        if query:
+            # Build Q objects for complex queries
+            q_objects = Q()
+
+            if 'title' in search_in:
+                q_objects |= Q(title__icontains=query)
+            
+            if 'content' in search_in:
+                q_objects |= Q(content__icontains=query)
+            
+            if 'tags' in search_in:
+                q_objects |= Q(tags__name__icontains=query)
+
+            posts = Post.objects.filter(q_objects).distinct().order_by('-published_date')
+
+    context = {
+        'form': form,
+        'posts': posts,
+        'query': query,
+        'title': f'Search Results for "{query}"' if query else 'Search Posts'
+    }
+
+    return render(request, 'blog/search.html', context)
+
+
+class TagListView(ListView):
+    """
+    Display all available tags with post counts.
+    """
+    model = Tag
+    template_name = 'blog/tag_list.html'
+    context_object_name = 'tags'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return Tag.objects.annotate(
+            post_count=Count('posts')
+        ).filter(post_count__gt=0).order_by('-post_count', 'name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'All Tags'
+        
+        # Get tags with post counts and recent posts
+        tags_with_data = []
+        max_count = 0
+        min_count = float('inf')
+        total_posts = 0
+        
+        for tag in self.get_queryset():
+            post_count = tag.post_count
+            max_count = max(max_count, post_count)
+            min_count = min(min_count, post_count)
+            total_posts += post_count
+            
+            # Get recent posts for this tag
+            recent_posts = tag.posts.order_by('-published_date')[:3]
+            
+            tags_with_data.append({
+                'tag': tag,
+                'count': post_count,
+                'recent_posts': recent_posts,
+            })
+        
+        # Calculate font sizes for tag cloud (between 0.8 and 2.5 rem)
+        if max_count > min_count:
+            for tag_data in tags_with_data:
+                count = tag_data['count']
+                # Scale font size based on post count
+                font_size = 0.8 + (count - min_count) / (max_count - min_count) * 1.7
+                tag_data['font_size'] = round(font_size, 1)
+        else:
+            for tag_data in tags_with_data:
+                tag_data['font_size'] = 1.5
+        
+        # Find most used tag
+        most_used_tag = None
+        if tags_with_data:
+            most_used_tag = max(tags_with_data, key=lambda x: x['count'])
+        
+        context['tags'] = tags_with_data
+        context['total_posts'] = total_posts
+        context['most_used_tag'] = most_used_tag
+        
+        return context

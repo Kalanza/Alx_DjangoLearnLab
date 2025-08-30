@@ -1,0 +1,418 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Django Blog{% endblock %}
+
+{% block content %}
+<div class="posts-by-tag-container">
+    <div class="tag-header">
+        <div class="tag-info">
+            <h1>
+                <i class="fas fa-tag"></i>
+                Posts tagged with "{{ tag.name }}"
+            </h1>
+            <p class="tag-description">
+                Showing {{ posts|length }} post{{ posts|length|pluralize }} with this tag
+            </p>
+        </div>
+        
+        <div class="tag-actions">
+            <a href="{% url 'tag-list' %}" class="btn btn-outline">
+                <i class="fas fa-tags"></i> View All Tags
+            </a>
+            <a href="{% url 'post-list' %}" class="btn btn-outline">
+                <i class="fas fa-list"></i> All Posts
+            </a>
+        </div>
+    </div>
+
+    <!-- Posts List -->
+    <div class="posts-grid">
+        {% if posts %}
+            {% for post in posts %}
+                <article class="post-card">
+                    <header class="post-card-header">
+                        <h3 class="post-card-title">
+                            <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+                        </h3>
+                        <div class="post-card-meta">
+                            <span class="author">
+                                <i class="fas fa-user"></i>
+                                <a href="{% url 'user-posts' post.author.username %}">{{ post.author.username }}</a>
+                            </span>
+                            <span class="date">
+                                <i class="fas fa-calendar"></i>
+                                {{ post.published_date|date:"M d, Y" }}
+                            </span>
+                        </div>
+                    </header>
+                    
+                    <div class="post-card-content">
+                        {{ post.content|truncatewords:25|linebreaksbr }}
+                    </div>
+                    
+                    <!-- All post tags -->
+                    {% if post.tags.all %}
+                        <div class="post-card-tags">
+                            {% for post_tag in post.tags.all %}
+                                <a href="{% url 'posts-by-tag' post_tag.name %}" class="tag-link">
+                                    <span class="tag-mini {% if post_tag.name == tag.name %}tag-current{% endif %}">
+                                        {{ post_tag.name }}
+                                    </span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <footer class="post-card-footer">
+                        <a href="{{ post.get_absolute_url }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-arrow-right"></i> Read More
+                        </a>
+                        <div class="post-stats">
+                            <span class="comments-count">
+                                <i class="fas fa-comments"></i>
+                                {{ post.comments.count }}
+                            </span>
+                            {% if user == post.author %}
+                                <a href="{% url 'post-update' post.pk %}" class="edit-link">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            {% endif %}
+                        </div>
+                    </footer>
+                </article>
+            {% endfor %}
+        {% else %}
+            <div class="no-posts">
+                <div class="no-posts-icon">
+                    <i class="fas fa-tag"></i>
+                </div>
+                <h3>No Posts Found</h3>
+                <p>There are no posts with the tag "{{ tag.name }}" yet.</p>
+                <div class="no-posts-actions">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'post-create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create First Post
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'tag-list' %}" class="btn btn-outline">
+                        <i class="fas fa-tags"></i> Browse Other Tags
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <div class="pagination-container">
+            <nav aria-label="Posts pagination">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">&laquo; First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
+
+    <!-- Related Tags -->
+    <div class="related-tags">
+        <h3>Related Tags</h3>
+        <div class="related-tags-list">
+            <!-- This would be populated with related tags logic -->
+            <p class="text-muted">
+                <a href="{% url 'tag-list' %}">View all tags</a> to discover more content
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+.posts-by-tag-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.tag-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #e1e5e9;
+}
+
+.tag-info h1 {
+    color: #333;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.tag-info .fas {
+    color: #007bff;
+}
+
+.tag-description {
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.tag-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.post-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.post-card-header {
+    padding: 1.5rem 1.5rem 1rem;
+}
+
+.post-card-title {
+    margin: 0 0 1rem 0;
+}
+
+.post-card-title a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.post-card-title a:hover {
+    color: #007bff;
+}
+
+.post-card-meta {
+    display: flex;
+    gap: 1rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.post-card-meta .fas {
+    margin-right: 0.25rem;
+}
+
+.post-card-meta a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.post-card-content {
+    padding: 0 1.5rem 1rem;
+    color: #555;
+    line-height: 1.6;
+}
+
+.post-card-tags {
+    padding: 0 1.5rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag-mini {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    background: #e9ecef;
+    color: #495057;
+}
+
+.tag-current {
+    background: #007bff !important;
+    color: white !important;
+}
+
+.tag-mini:hover {
+    background: #007bff;
+    color: white;
+}
+
+.post-card-footer {
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #e1e5e9;
+}
+
+.post-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.comments-count {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.edit-link {
+    color: #28a745;
+    text-decoration: none;
+    font-size: 0.8rem;
+}
+
+.edit-link:hover {
+    text-decoration: underline;
+}
+
+.no-posts {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6c757d;
+}
+
+.no-posts-icon {
+    font-size: 4rem;
+    color: #e9ecef;
+    margin-bottom: 1rem;
+}
+
+.no-posts-actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.related-tags {
+    margin-top: 3rem;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.related-tags h3 {
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.pagination {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    gap: 0.5rem;
+}
+
+.page-item {
+    margin: 0;
+}
+
+.page-link {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #007bff;
+    text-decoration: none;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.page-link:hover {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.page-item.active .page-link {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .posts-by-tag-container {
+        margin: 1rem;
+        padding: 1rem;
+    }
+    
+    .tag-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .tag-actions {
+        justify-content: center;
+    }
+    
+    .posts-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .post-card-footer {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+        text-align: center;
+    }
+    
+    .no-posts-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
+{% endblock %}
