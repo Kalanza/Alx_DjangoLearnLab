@@ -27,6 +27,7 @@ urlpatterns = [
     path('search-posts/', views.search_posts, name='search-posts'),
     path('tags/', views.TagListView.as_view(), name='tag-list'),
     path('tags/<str:tag_name>/', views.PostsByTagView.as_view(), name='posts-by-tag'),
+    path('tags/<slug:tag_slug>/', views.PostByTagListView.as_view(), name='posts-by-tag-slug'),
     
     # Authentication URLs
     path('login/', auth_views.LoginView.as_view(template_name='blog/login.html'), name='login'),

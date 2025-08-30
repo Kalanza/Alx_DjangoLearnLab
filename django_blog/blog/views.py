@@ -364,6 +364,29 @@ class PostsByTagView(ListView):
         return context
 
 
+class PostByTagListView(ListView):
+    """
+    Display all posts filtered by a specific tag using slug.
+    Alternative view that uses slug parameter for tag filtering.
+    """
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    paginate_by = 5
+
+    def get_queryset(self):
+        """Filter posts by tag slug."""
+        tag_slug = self.kwargs.get('tag_slug')
+        return Post.objects.filter(tags__slug__iexact=tag_slug).order_by('-published_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag_slug = self.kwargs.get('tag_slug')
+        context['tag'] = get_object_or_404(TaggitTag, slug__iexact=tag_slug)
+        context['title'] = f'Posts tagged with "{context["tag"].name}"'
+        return context
+
+
 def search_posts(request):
     """
     Function-based search view that handles both GET and POST requests.
