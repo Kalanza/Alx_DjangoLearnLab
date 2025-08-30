@@ -53,6 +53,109 @@
         </footer>
     </article>
     
+    <!-- Comments Section -->
+    <div class="comments-section">
+        <div class="comments-header">
+            <h3>
+                Comments ({{ comments.count }})
+                <i class="fas fa-comments"></i>
+            </h3>
+            
+            {% if user.is_authenticated %}
+                <a href="{% url 'add-comment' post.pk %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Add Comment
+                </a>
+            {% else %}
+                <p class="login-prompt">
+                    <a href="{% url 'login' %}">Login</a> to add a comment
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Comments List -->
+        <div class="comments-list">
+            {% if comments %}
+                {% for comment in comments %}
+                    <div class="comment" id="comment-{{ comment.pk }}">
+                        <div class="comment-header">
+                            <div class="comment-author">
+                                <strong>
+                                    <a href="{% url 'user-posts' comment.author.username %}">
+                                        {{ comment.author.username }}
+                                    </a>
+                                </strong>
+                                {% if comment.author.first_name or comment.author.last_name %}
+                                    <span class="author-full-name">
+                                        ({{ comment.author.first_name }} {{ comment.author.last_name }})
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="comment-meta">
+                                <span class="comment-date">
+                                    {{ comment.created_at|date:"F d, Y \a\t g:i A" }}
+                                </span>
+                                {% if comment.updated_at != comment.created_at %}
+                                    <span class="comment-updated">
+                                        (edited {{ comment.updated_at|date:"M d, Y \a\t g:i A" }})
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="comment-content">
+                            {{ comment.content|linebreaksbr }}
+                        </div>
+                        
+                        {% if user == comment.author %}
+                            <div class="comment-actions">
+                                <a href="{% url 'comment-update' comment.pk %}" class="btn btn-sm btn-outline">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="{% url 'comment-delete' comment.pk %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-comments">
+                    <p>No comments yet. Be the first to comment!</p>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'add-comment' post.pk %}" class="btn btn-primary">
+                            <i class="fas fa-comment"></i> Write the first comment
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick Comment Form (for authenticated users) -->
+        {% if user.is_authenticated and comment_form %}
+            <div class="quick-comment-form">
+                <h4>Add a Comment</h4>
+                <form method="post" action="{% url 'add-comment' post.pk %}" class="comment-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        {{ comment_form.content }}
+                        {% if comment_form.content.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in comment_form.content.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-comment"></i> Post Comment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+    
     <!-- Related Posts or Navigation -->
     <div class="post-navigation">
         <h3>Related Posts</h3>
@@ -74,4 +177,191 @@
         {% endwith %}
     </div>
 </div>
+
+<style>
+/* Comments Section Styles */
+.comments-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid #e1e5e9;
+}
+
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.comments-header h3 {
+    color: #333;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.login-prompt {
+    color: #6c757d;
+    margin: 0;
+}
+
+.login-prompt a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.login-prompt a:hover {
+    text-decoration: underline;
+}
+
+.comments-list {
+    margin-bottom: 2rem;
+}
+
+.comment {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #007bff;
+}
+
+.comment:last-child {
+    margin-bottom: 0;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.comment-author strong a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.comment-author strong a:hover {
+    text-decoration: underline;
+}
+
+.author-full-name {
+    color: #6c757d;
+    font-weight: normal;
+    font-size: 0.9rem;
+}
+
+.comment-meta {
+    text-align: right;
+}
+
+.comment-date {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.comment-updated {
+    color: #28a745;
+    font-size: 0.8rem;
+    font-style: italic;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.comment-content {
+    color: #333;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.no-comments {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.no-comments p {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.quick-comment-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    border: 2px solid #e1e5e9;
+    margin-top: 2rem;
+}
+
+.quick-comment-form h4 {
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.quick-comment-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.quick-comment-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    font-family: inherit;
+    min-height: 100px;
+    resize: vertical;
+}
+
+.quick-comment-form textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .comments-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .comment-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .comment-meta {
+        text-align: left;
+    }
+    
+    .comment-actions {
+        justify-content: center;
+        margin-top: 1rem;
+    }
+    
+    .quick-comment-form {
+        padding: 1.5rem;
+    }
+}
+</style>
 {% endblock %}

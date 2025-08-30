@@ -13,6 +13,12 @@ urlpatterns = [
     path('post/<int:pk>/update/', views.PostUpdateView.as_view(), name='post-update'),
     path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post-delete'),
     
+    # Comment URLs
+    path('post/<int:post_id>/comments/new/', views.CommentCreateView.as_view(), name='comment-create'),
+    path('post/<int:post_id>/comment/add/', views.add_comment, name='add-comment'),
+    path('comment/<int:pk>/update/', views.CommentUpdateView.as_view(), name='comment-update'),
+    path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment-delete'),
+    
     # User Posts
     path('user/<str:username>/posts/', views.UserPostListView.as_view(), name='user-posts'),
     
