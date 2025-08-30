@@ -1,0 +1,105 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Profile - Django Blog{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <h2>User Profile</h2>
+    
+    <div class="profile-info">
+        <h3>Current Profile Information</h3>
+        <div class="info-display">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>First Name:</strong> {{ user.first_name|default:"Not provided" }}</p>
+            <p><strong>Last Name:</strong> {{ user.last_name|default:"Not provided" }}</p>
+            <p><strong>Email:</strong> {{ user.email|default:"Not provided" }}</p>
+            <p><strong>Date Joined:</strong> {{ user.date_joined|date:"F d, Y" }}</p>
+            <p><strong>Last Login:</strong> {{ user.last_login|date:"F d, Y g:i A"|default:"Never" }}</p>
+        </div>
+    </div>
+    
+    <div class="profile-edit">
+        <h3>Update Profile Information</h3>
+        
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Username:</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="error-messages">
+                        {% for error in form.username.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.first_name.id_for_label }}">First Name:</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    <div class="error-messages">
+                        {% for error in form.first_name.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.last_name.id_for_label }}">Last Name:</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    <div class="error-messages">
+                        {% for error in form.last_name.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">Email:</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="error-messages">
+                        {% for error in form.email.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if form.non_field_errors %}
+                <div class="error-messages">
+                    {% for error in form.non_field_errors %}
+                        <p class="error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <button type="submit" class="btn-primary">Update Profile</button>
+        </form>
+    </div>
+    
+    <div class="profile-stats">
+        <h3>Blog Statistics</h3>
+        <p><strong>Total Posts:</strong> {{ user.post_set.count }}</p>
+        <p><strong>Recent Posts:</strong></p>
+        {% if user.post_set.all %}
+            <ul class="recent-posts-list">
+                {% for post in user.post_set.all|slice:":5" %}
+                    <li>
+                        <strong>{{ post.title }}</strong> - 
+                        <span class="post-date">{{ post.published_date|date:"M d, Y" }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No posts yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
