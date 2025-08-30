@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Post, Comment, Tag
+from taggit.forms import TagWidget
 
 class CustomUserCreationForm(UserCreationForm):
     """
@@ -61,23 +62,11 @@ class UserUpdateForm(forms.ModelForm):
 
 class PostForm(forms.ModelForm):
     """
-    Form for creating and updating blog posts with tags.
+    Form for creating and updating blog posts with tags using django-taggit.
     """
-    tags_input = forms.CharField(
-        max_length=500,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter tags separated by commas (e.g., python, django, web)',
-            'data-toggle': 'tooltip',
-            'title': 'Add tags to categorize your post'
-        }),
-        help_text='Enter tags separated by commas. New tags will be created automatically.'
-    )
-
     class Meta:
         model = Post
-        fields = ['title', 'content']
+        fields = ['title', 'content', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -89,11 +78,18 @@ class PostForm(forms.ModelForm):
                 'placeholder': 'Write your post content here...',
                 'rows': 10,
                 'style': 'resize: vertical;'
+            }),
+            'tags': TagWidget(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter tags separated by commas (e.g., python, django, web)',
+                'data-toggle': 'tooltip',
+                'title': 'Add tags to categorize your post'
             })
         }
         help_texts = {
             'title': 'Maximum 200 characters',
-            'content': 'Write your blog post content. You can use plain text or HTML.'
+            'content': 'Write your blog post content. You can use plain text or HTML.',
+            'tags': 'Enter tags separated by commas. New tags will be created automatically.'
         }
 
     def __init__(self, *args, **kwargs):
@@ -101,11 +97,7 @@ class PostForm(forms.ModelForm):
         # Add custom validation and styling
         self.fields['title'].required = True
         self.fields['content'].required = True
-        
-        # Pre-populate tags if editing existing post
-        if self.instance and self.instance.pk:
-            existing_tags = [tag.name for tag in self.instance.tags.all()]
-            self.fields['tags_input'].initial = ', '.join(existing_tags)
+        self.fields['tags'].required = False
 
     def clean_title(self):
         """Custom validation for title field."""
@@ -124,37 +116,6 @@ class PostForm(forms.ModelForm):
             if len(content) < 20:
                 raise forms.ValidationError('Content must be at least 20 characters long.')
         return content
-
-    def clean_tags_input(self):
-        """Clean and validate tags input."""
-        tags_input = self.cleaned_data.get('tags_input', '')
-        if tags_input:
-            # Split by comma and clean each tag
-            tags = [tag.strip().lower() for tag in tags_input.split(',') if tag.strip()]
-            # Remove duplicates while preserving order
-            unique_tags = []
-            for tag in tags:
-                if tag not in unique_tags and len(tag) <= 50:  # Max length validation
-                    unique_tags.append(tag)
-            return unique_tags
-        return []
-
-    def save(self, commit=True):
-        """Save post and handle tags."""
-        post = super().save(commit=commit)
-        
-        if commit:
-            # Clear existing tags
-            post.tags.clear()
-            
-            # Process tags
-            tags_list = self.cleaned_data.get('tags_input', [])
-            for tag_name in tags_list:
-                if tag_name:  # Only process non-empty tags
-                    tag, created = Tag.objects.get_or_create(name=tag_name)
-                    post.tags.add(tag)
-        
-        return post
 
 
 class SearchForm(forms.Form):

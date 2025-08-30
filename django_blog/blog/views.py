@@ -15,6 +15,7 @@ from django.urls import reverse_lazy, reverse
 from django.db.models import Q, Count
 from .models import Post, Comment, Tag
 from .forms import CustomUserCreationForm, UserUpdateForm, CommentForm, PostForm, SearchForm
+from taggit.models import Tag as TaggitTag
 
 # Create your views here.
 
@@ -358,7 +359,7 @@ class PostsByTagView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tag_name = self.kwargs.get('tag_name')
-        context['tag'] = get_object_or_404(Tag, name__iexact=tag_name)
+        context['tag'] = get_object_or_404(TaggitTag, name__iexact=tag_name)
         context['title'] = f'Posts tagged with "{tag_name}"'
         return context
 
@@ -404,14 +405,14 @@ class TagListView(ListView):
     """
     Display all available tags with post counts.
     """
-    model = Tag
+    model = TaggitTag
     template_name = 'blog/tag_list.html'
     context_object_name = 'tags'
     paginate_by = 20
 
     def get_queryset(self):
-        return Tag.objects.annotate(
-            post_count=Count('posts')
+        return TaggitTag.objects.annotate(
+            post_count=Count('taggit_taggeditem_items__object_id')
         ).filter(post_count__gt=0).order_by('-post_count', 'name')
 
     def get_context_data(self, **kwargs):
@@ -431,7 +432,7 @@ class TagListView(ListView):
             total_posts += post_count
             
             # Get recent posts for this tag
-            recent_posts = tag.posts.order_by('-published_date')[:3]
+            recent_posts = Post.objects.filter(tags__name=tag.name).order_by('-published_date')[:3]
             
             tags_with_data.append({
                 'tag': tag,

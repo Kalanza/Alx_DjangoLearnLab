@@ -2,10 +2,15 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
+from taggit.managers import TaggableManager
 
 # Create your models here.
 
 class Tag(models.Model):
+    """
+    Custom Tag model (keeping for compatibility)
+    Note: We're primarily using django-taggit's TaggableManager
+    """
     name = models.CharField(max_length=50, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -26,7 +31,7 @@ class Post(models.Model):
     published_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    tags = models.ManyToManyField(Tag, blank=True, related_name='posts')
+    tags = TaggableManager()
 
     def __str__(self):
         return self.title
