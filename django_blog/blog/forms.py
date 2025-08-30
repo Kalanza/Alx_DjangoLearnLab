@@ -85,6 +85,7 @@ class PostForm(forms.ModelForm):
                 'data-toggle': 'tooltip',
                 'title': 'Add tags to categorize your post'
             })
+            # Alternative simple usage: TagWidget()
         }
         help_texts = {
             'title': 'Maximum 200 characters',
@@ -116,6 +117,18 @@ class PostForm(forms.ModelForm):
             if len(content) < 20:
                 raise forms.ValidationError('Content must be at least 20 characters long.')
         return content
+
+
+class SimplePostForm(forms.ModelForm):
+    """
+    Simple alternative form demonstrating basic TagWidget() usage.
+    """
+    class Meta:
+        model = Post
+        fields = ['title', 'content', 'tags']
+        widgets = {
+            'tags': TagWidget()  # Simple TagWidget usage
+        }
 
 
 class SearchForm(forms.Form):
