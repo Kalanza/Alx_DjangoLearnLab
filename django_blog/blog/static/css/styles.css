@@ -291,13 +291,478 @@ footer {
     color: white;
 }
 
+/* Blog Post Management Styles */
+
+/* Posts Header */
+.posts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 15px;
+}
+
+.posts-header h1 {
+    color: #333;
+    margin: 0;
+}
+
+/* Post List Styles */
+.posts-list {
+    margin-top: 20px;
+}
+
+.post-item {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.post-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.post-header {
+    margin-bottom: 15px;
+}
+
+.post-title a {
+    color: #333;
+    text-decoration: none;
+    font-size: 1.4em;
+    font-weight: bold;
+    line-height: 1.3;
+}
+
+.post-title a:hover {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+.post-meta .author a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.post-meta .author a:hover {
+    text-decoration: underline;
+}
+
+.post-meta .updated {
+    color: #888;
+    font-style: italic;
+}
+
+.post-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Post Detail Styles */
+.post-detail-container {
+    max-width: 900px;
+    margin: 40px auto;
+}
+
+.post-detail {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.post-detail .post-title {
+    font-size: 2.2em;
+    color: #333;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.post-detail .post-meta {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+
+.author-info {
+    margin-bottom: 10px;
+}
+
+.author-full-name {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.post-dates {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.post-dates .published,
+.post-dates .updated {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.post-detail .post-content {
+    font-size: 1.1em;
+    line-height: 1.8;
+    color: #444;
+    margin-bottom: 40px;
+}
+
+.post-footer {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.post-navigation {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.related-posts {
+    display: grid;
+    gap: 10px;
+}
+
+.related-post {
+    padding: 10px;
+    background: white;
+    border-radius: 4px;
+    border-left: 3px solid #007bff;
+}
+
+.related-post a {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.related-post a:hover {
+    color: #007bff;
+}
+
+.related-post small {
+    display: block;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* Form Styles */
+.form-container {
+    max-width: 800px;
+    margin: 40px auto;
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-header h2 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.form-description {
+    color: #666;
+    font-size: 1.1em;
+}
+
+.post-form .form-group {
+    margin-bottom: 25px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+
+.required {
+    color: #dc3545;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+
+.form-tips {
+    margin-top: 30px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 6px;
+    border-left: 4px solid #007bff;
+}
+
+.form-tips h4 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.form-tips ul {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Delete Confirmation Styles */
+.delete-container {
+    max-width: 700px;
+    margin: 40px auto;
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.delete-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.warning-message {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 15px;
+}
+
+.warning-message i {
+    margin-right: 10px;
+    color: #f39c12;
+}
+
+.post-preview {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+    border-left: 4px solid #dc3545;
+}
+
+.post-preview h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.post-info h4 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.post-excerpt {
+    margin-top: 15px;
+    color: #666;
+    line-height: 1.6;
+}
+
+.truncated {
+    color: #999;
+    font-style: italic;
+}
+
+.deletion-info {
+    margin-top: 30px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 6px;
+}
+
+.deletion-info h4 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.deletion-info ul {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* User Posts Styles */
+.user-posts-container {
+    max-width: 1000px;
+    margin: 40px auto;
+}
+
+.user-posts-header {
+    margin-bottom: 30px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 20px;
+}
+
+.author-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.author-details h3 {
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.author-full-name {
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.author-email {
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.author-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.navigation-links {
+    margin-top: 30px;
+    text-align: center;
+}
+
+/* Button Styles */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+    border-color: #545b62;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-outline:hover {
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+}
+
+/* Pagination Styles */
+.pagination-container {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination {
+    display: flex;
+    list-style: none;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+}
+
+.page-item {
+    display: block;
+}
+
+.page-link {
+    display: block;
+    padding: 8px 12px;
+    color: #007bff;
+    text-decoration: none;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.page-link:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .content {
         margin: 10px;
     }
     
-    .auth-container, .profile-container {
+    .auth-container, .profile-container, .form-container, .delete-container {
         margin: 20px 10px;
         padding: 20px;
     }
@@ -309,5 +774,39 @@ footer {
     
     .posts-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .posts-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .post-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .post-dates {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .author-stats {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .pagination {
+        flex-wrap: wrap;
+        gap: 2px;
+    }
+    
+    .page-link {
+        padding: 6px 10px;
+        font-size: 12px;
     }
 }

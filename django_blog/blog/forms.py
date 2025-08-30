@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from .models import Post
 
 class CustomUserCreationForm(UserCreationForm):
     """
@@ -56,3 +57,53 @@ class UserUpdateForm(forms.ModelForm):
         # Add CSS classes for styling
         for fieldname in ['username', 'first_name', 'last_name', 'email']:
             self.fields[fieldname].widget.attrs['class'] = 'form-control'
+
+
+class PostForm(forms.ModelForm):
+    """
+    Form for creating and updating blog posts.
+    """
+    class Meta:
+        model = Post
+        fields = ['title', 'content']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter post title...',
+                'maxlength': '200'
+            }),
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Write your post content here...',
+                'rows': 10,
+                'style': 'resize: vertical;'
+            })
+        }
+        help_texts = {
+            'title': 'Maximum 200 characters',
+            'content': 'Write your blog post content. You can use plain text or HTML.'
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add custom validation and styling
+        self.fields['title'].required = True
+        self.fields['content'].required = True
+
+    def clean_title(self):
+        """Custom validation for title field."""
+        title = self.cleaned_data.get('title')
+        if title:
+            title = title.strip()
+            if len(title) < 5:
+                raise forms.ValidationError('Title must be at least 5 characters long.')
+        return title
+
+    def clean_content(self):
+        """Custom validation for content field."""
+        content = self.cleaned_data.get('content')
+        if content:
+            content = content.strip()
+            if len(content) < 20:
+                raise forms.ValidationError('Content must be at least 20 characters long.')
+        return content

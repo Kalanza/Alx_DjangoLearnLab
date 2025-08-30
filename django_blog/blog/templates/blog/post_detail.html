@@ -1,0 +1,77 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}{{ post.title }} - Django Blog{% endblock %}
+
+{% block content %}
+<div class="post-detail-container">
+    <article class="post-detail">
+        <header class="post-header">
+            <h1 class="post-title">{{ post.title }}</h1>
+            <div class="post-meta">
+                <div class="author-info">
+                    <span class="author">
+                        By <a href="{% url 'user-posts' post.author.username %}">{{ post.author.username }}</a>
+                    </span>
+                    {% if post.author.first_name or post.author.last_name %}
+                        <span class="author-full-name">
+                            ({{ post.author.first_name }} {{ post.author.last_name }})
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="post-dates">
+                    <span class="published">Published: {{ post.published_date|date:"F d, Y \a\t g:i A" }}</span>
+                    {% if post.updated_date != post.published_date %}
+                        <span class="updated">Updated: {{ post.updated_date|date:"F d, Y \a\t g:i A" }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+        
+        <div class="post-content">
+            {{ post.content|linebreaksbr }}
+        </div>
+        
+        <footer class="post-footer">
+            <div class="post-actions">
+                {% if user == post.author %}
+                    <a href="{% url 'post-update' post.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Edit Post
+                    </a>
+                    <a href="{% url 'post-delete' post.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete Post
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'post-list' %}" class="btn btn-outline">
+                    <i class="fas fa-arrow-left"></i> Back to All Posts
+                </a>
+                
+                <a href="{% url 'user-posts' post.author.username %}" class="btn btn-outline">
+                    <i class="fas fa-user"></i> More by {{ post.author.username }}
+                </a>
+            </div>
+        </footer>
+    </article>
+    
+    <!-- Related Posts or Navigation -->
+    <div class="post-navigation">
+        <h3>Related Posts</h3>
+        {% with post.author.post_set.all|slice:":3" as related_posts %}
+            {% if related_posts %}
+                <div class="related-posts">
+                    {% for related_post in related_posts %}
+                        {% if related_post.pk != post.pk %}
+                            <div class="related-post">
+                                <a href="{% url 'post-detail' related_post.pk %}">{{ related_post.title }}</a>
+                                <small>{{ related_post.published_date|date:"M d, Y" }}</small>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No other posts by this author yet.</p>
+            {% endif %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock %}
