@@ -2,7 +2,41 @@
 from rest_framework import viewsets, permissions, filters
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Post, Comment
+from .models import Post, Comment, Like
+from rest_framework import generics
+from django.shortcuts import get_object_or_404
+from notifications.models import Notification
+from django.contrib.contenttypes.models import ContentType
+# Like and Unlike views
+class LikePostView(generics.GenericAPIView):
+	permission_classes = [permissions.IsAuthenticated]
+
+	def post(self, request, pk):
+		post = generics.get_object_or_404(Post, pk=pk)
+		like, created = Like.objects.get_or_create(user=request.user, post=post)
+		if not created:
+			return Response({'detail': 'You have already liked this post.'}, status=400)
+		# Create notification for post author
+		if post.author != request.user:
+			Notification.objects.create(
+				recipient=post.author,
+				actor=request.user,
+				verb='liked your post',
+				target=post,
+			)
+		return Response({'detail': 'Post liked.'}, status=200)
+
+class UnlikePostView(generics.GenericAPIView):
+	permission_classes = [permissions.IsAuthenticated]
+
+	def post(self, request, pk):
+		post = generics.get_object_or_404(Post, pk=pk)
+		try:
+			like = Like.objects.get(user=request.user, post=post)
+			like.delete()
+			return Response({'detail': 'Post unliked.'}, status=200)
+		except Like.DoesNotExist:
+			return Response({'detail': 'You have not liked this post.'}, status=400)
 from .serializers import PostSerializer, CommentSerializer
 from .permissions import IsAuthorOrReadOnly
 
