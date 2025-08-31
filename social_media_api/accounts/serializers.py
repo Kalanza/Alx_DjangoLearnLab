@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from rest_framework.authtoken.models import Token
-from .models import CustomUser
+
+User = get_user_model()
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """
@@ -11,7 +12,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     password_confirm = serializers.CharField(write_only=True)
     
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('username', 'email', 'password', 'password_confirm', 'first_name', 'last_name', 'bio')
         
     def validate(self, attrs):
@@ -27,7 +28,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         Create a new user with encrypted password.
         """
         validated_data.pop('password_confirm')
-        user = CustomUser.objects.create_user(**validated_data)
+        user = get_user_model().objects.create_user(**validated_data)
         # Create token for the user
         Token.objects.create(user=user)
         return user
@@ -65,7 +66,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     following_count = serializers.SerializerMethodField()
     
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'bio', 
                  'profile_picture', 'followers_count', 'following_count', 'date_joined')
         read_only_fields = ('id', 'username', 'date_joined', 'followers_count', 'following_count')
