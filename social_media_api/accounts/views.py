@@ -59,30 +59,33 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def follow_user(request, user_id):
-    """
-    Authenticated user follows another user.
-    """
-    to_follow = get_object_or_404(CustomUser, id=user_id)
-    if to_follow == request.user:
-        return Response({'detail': 'You cannot follow yourself.'}, status=400)
-    if request.user.following.filter(id=to_follow.id).exists():
-        return Response({'detail': 'Already following this user.'}, status=400)
-    request.user.following.add(to_follow)
-    return Response({'detail': f'You are now following {to_follow.username}.'}, status=200)
 
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def unfollow_user(request, user_id):
-    """
-    Authenticated user unfollows another user.
-    """
-    to_unfollow = get_object_or_404(CustomUser, id=user_id)
-    if to_unfollow == request.user:
-        return Response({'detail': 'You cannot unfollow yourself.'}, status=400)
-    if not request.user.following.filter(id=to_unfollow.id).exists():
-        return Response({'detail': 'You are not following this user.'}, status=400)
-    request.user.following.remove(to_unfollow)
-    return Response({'detail': f'You have unfollowed {to_unfollow.username}.'}, status=200)
+class FollowUserView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, user_id):
+        """
+        Authenticated user follows another user.
+        """
+        to_follow = get_object_or_404(CustomUser, id=user_id)
+        if to_follow == request.user:
+            return Response({'detail': 'You cannot follow yourself.'}, status=400)
+        if request.user.following.filter(id=to_follow.id).exists():
+            return Response({'detail': 'Already following this user.'}, status=400)
+        request.user.following.add(to_follow)
+        return Response({'detail': f'You are now following {to_follow.username}.'}, status=200)
+
+class UnfollowUserView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, user_id):
+        """
+        Authenticated user unfollows another user.
+        """
+        to_unfollow = get_object_or_404(CustomUser, id=user_id)
+        if to_unfollow == request.user:
+            return Response({'detail': 'You cannot unfollow yourself.'}, status=400)
+        if not request.user.following.filter(id=to_unfollow.id).exists():
+            return Response({'detail': 'You are not following this user.'}, status=400)
+        request.user.following.remove(to_unfollow)
+        return Response({'detail': f'You have unfollowed {to_unfollow.username}.'}, status=200)
