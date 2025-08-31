@@ -23,6 +23,7 @@ class PostViewSet(viewsets.ModelViewSet):
 	def perform_create(self, serializer):
 		serializer.save(author=self.request.user)
 
+
 class CommentViewSet(viewsets.ModelViewSet):
 	queryset = Comment.objects.all().order_by('-created_at')
 	serializer_class = CommentSerializer
@@ -33,3 +34,21 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 	def perform_create(self, serializer):
 		serializer.save(author=self.request.user)
+
+# Feed endpoint
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def feed(request):
+	"""
+	Return posts from users the current user follows, ordered by creation date.
+	"""
+	user = request.user
+	following_users = user.following.all()
+	posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
+	paginator = StandardResultsSetPagination()
+	result_page = paginator.paginate_queryset(posts, request)
+	serializer = PostSerializer(result_page, many=True)
+	return paginator.get_paginated_response(serializer.data)
