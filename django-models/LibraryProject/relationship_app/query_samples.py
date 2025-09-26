@@ -7,10 +7,10 @@ books_by_author = author.books.all()
 
 #List all books in a library
 # First get a specific library, then get their books
-library = Library.objects.get(name='Kenya National Library')  # Replace with actual library name
+library = Library.objects.get(name='library_name')  # Replace with actual library name
 books_in_library = library.books.all()
 
 #Retrieve Librarian for a library 
-
+# Get the librarian associated with a specific library
 library = Library.objects.get(name='Kenya National Library')  # Replace with actual library name
-books_in_library = library.name.all()
+librarian = library.librarian  # OneToOne relationship allows direct access
