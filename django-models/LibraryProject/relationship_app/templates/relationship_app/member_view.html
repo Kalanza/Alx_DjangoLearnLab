@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .member-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .member-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .logout-btn {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 Member Dashboard</h1>
+            <p>Welcome, {{ user.username }}! You have <strong>{{ role }}</strong> access.</p>
+        </div>
+        
+        <div class="member-panel">
+            <div class="member-card">
+                <h3>🔍 Browse Books</h3>
+                <p>Search and explore the library's book collection.</p>
+                <ul>
+                    <li>Search books by title</li>
+                    <li>Browse by author</li>
+                    <li>Filter by category</li>
+                    <li>View book details</li>
+                </ul>
+            </div>
+            
+            <div class="member-card">
+                <h3>📚 My Books</h3>
+                <p>View your current and past book loans.</p>
+                <ul>
+                    <li>Currently borrowed books</li>
+                    <li>Due dates and renewals</li>
+                    <li>Borrowing history</li>
+                    <li>Reading recommendations</li>
+                </ul>
+            </div>
+            
+            <div class="member-card">
+                <h3>❤️ My Favorites</h3>
+                <p>Manage your favorite books and wishlist.</p>
+                <ul>
+                    <li>Add books to favorites</li>
+                    <li>Create reading wishlist</li>
+                    <li>Rate and review books</li>
+                    <li>Share recommendations</li>
+                </ul>
+            </div>
+            
+            <div class="member-card">
+                <h3>📱 My Account</h3>
+                <p>Manage your library membership and profile.</p>
+                <ul>
+                    <li>Update contact information</li>
+                    <li>View membership status</li>
+                    <li>Check account balance</li>
+                    <li>Membership renewal</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div>
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+    </div>
+</body>
+</html>
