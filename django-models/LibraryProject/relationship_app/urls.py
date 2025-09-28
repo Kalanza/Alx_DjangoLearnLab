@@ -19,20 +19,21 @@ from django.contrib import admin
 from django.urls import path
 from django.contrib.auth.views import LoginView, LogoutView
 from . import views
-from .admin_view import admin_view
-from .librarian_view import librarian_view
-from .member_view import member_view
-from .role_utils import dashboard
 
 urlpatterns = [
+    # Authentication URLs
     path('login/', LoginView.as_view(template_name='relationship_app/login.html'), name='login'),
     path('logout/', LogoutView.as_view(template_name='relationship_app/logout.html'), name='logout'),
     path('register/', views.register, name='register'),
     
-    path('dashboard/', dashboard, name='dashboard'),
-    
     # Role-based views
-    path('admin/', admin_view, name='admin_view'),
-    path('librarian/', librarian_view, name='librarian_view'),
-    path('member/', member_view, name='member_view'),
+    path('admin/', views.admin_view, name='admin_view'),
+    path('librarian/', views.librarian_view, name='librarian_view'),
+    path('member/', views.member_view, name='member_view'),
+    
+    # Book management URLs (secured with permissions)
+    path('books/', views.book_list, name='book_list'),
+    path('books/add/', views.add_book, name='add_book'),
+    path('books/edit/<int:book_id>/', views.edit_book, name='edit_book'),
+    path('books/delete/<int:book_id>/', views.delete_book, name='delete_book'),
 ]
