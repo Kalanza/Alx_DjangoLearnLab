@@ -52,3 +52,35 @@ class CustomUserAdmin(UserAdmin):
 
 admin.site.register(CustomUser, CustomUserAdmin)
 
+# Enhanced Group and Permission Management
+from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.admin import GroupAdmin
+
+class CustomGroupAdmin(GroupAdmin):
+    """
+    Enhanced Group Admin for better permission management
+    """
+    list_display = ('name', 'get_permissions_count')
+    search_fields = ('name',)
+    filter_horizontal = ('permissions',)
+    
+    def get_permissions_count(self, obj):
+        """Display the number of permissions in each group"""
+        return obj.permissions.count()
+    get_permissions_count.short_description = 'Permissions Count'
+
+# Unregister the default Group admin and register our custom one
+admin.site.unregister(Group)
+admin.site.register(Group, CustomGroupAdmin)
+
+# Custom Permission Admin for better visibility
+class PermissionAdmin(admin.ModelAdmin):
+    """
+    Custom Permission Admin for better management
+    """
+    list_display = ('name', 'codename', 'content_type')
+    list_filter = ('content_type',)
+    search_fields = ('name', 'codename')
+    ordering = ('content_type', 'codename')
+
+admin.site.register(Permission, PermissionAdmin)

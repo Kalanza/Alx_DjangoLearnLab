@@ -1,60 +1,58 @@
+"""
+Example views demonstrating permission-based access control.
+This shows how to use the custom permissions in Django views.
+"""
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.http import HttpResponseForbidden
 from .models import Book
 
-# Create your views here.
-
 @login_required
 @permission_required('bookshelf.can_view', raise_exception=True)
 def book_list(request):
     """
     View to list all books - requires 'can_view' permission
-    Users in Viewers, Editors, and Admins groups can access this view
     """
     books = Book.objects.all()
     return render(request, 'bookshelf/book_list.html', {'books': books})
 
-@login_required  
+@login_required
 @permission_required('bookshelf.can_create', raise_exception=True)
 def book_create(request):
     """
     View to create a new book - requires 'can_create' permission
-    Only users in Editors and Admins groups can access this view
     """
     if request.method == 'POST':
+        # Handle book creation logic here
         title = request.POST.get('title')
         author = request.POST.get('author')
         publication_year = request.POST.get('publication_year')
         
-        if title and author:
-            book = Book.objects.create(
-                title=title,
-                author=author,
-                publication_year=int(publication_year) if publication_year else None
-            )
-            messages.success(request, f'Book "{book.title}" created successfully!')
-            return redirect('book_list')
-        else:
-            messages.error(request, 'Title and Author are required fields.')
+        book = Book.objects.create(
+            title=title,
+            author=author,
+            publication_year=int(publication_year) if publication_year else None
+        )
+        messages.success(request, f'Book "{book.title}" created successfully!')
+        return redirect('book_list')
     
     return render(request, 'bookshelf/book_create.html')
 
 @login_required
-@permission_required('bookshelf.can_edit', raise_exception=True) 
+@permission_required('bookshelf.can_edit', raise_exception=True)
 def book_edit(request, book_id):
     """
     View to edit a book - requires 'can_edit' permission
-    Only users in Editors and Admins groups can access this view
     """
     book = get_object_or_404(Book, id=book_id)
     
     if request.method == 'POST':
+        # Handle book editing logic here
         book.title = request.POST.get('title', book.title)
-        book.author = request.POST.get('author', book.author) 
-        publication_year = request.POST.get('publication_year')
-        book.publication_year = int(publication_year) if publication_year else None
+        book.author = request.POST.get('author', book.author)
+        book.publication_year = request.POST.get('publication_year', book.publication_year)
         book.save()
         
         messages.success(request, f'Book "{book.title}" updated successfully!')
@@ -67,7 +65,6 @@ def book_edit(request, book_id):
 def book_delete(request, book_id):
     """
     View to delete a book - requires 'can_delete' permission
-    Only users in Admins group can access this view
     """
     book = get_object_or_404(Book, id=book_id)
     
@@ -80,14 +77,14 @@ def book_delete(request, book_id):
     return render(request, 'bookshelf/book_delete.html', {'book': book})
 
 @login_required
-def user_permissions_view(request):
+def check_user_permissions(request):
     """
-    View to show current user's permissions - for testing purposes
+    Helper view to show what permissions the current user has
     """
     user = request.user
     permissions = {
         'can_view': user.has_perm('bookshelf.can_view'),
-        'can_create': user.has_perm('bookshelf.can_create'), 
+        'can_create': user.has_perm('bookshelf.can_create'),
         'can_edit': user.has_perm('bookshelf.can_edit'),
         'can_delete': user.has_perm('bookshelf.can_delete'),
     }
