@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken",
     "api_project",
     "api",
 ]
@@ -123,3 +124,21 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# 2.Define the REST_FRAMEWORK settings
+REST_FRAMEWORK = {
+  'DEFAULT_AUTHENTICATION_CLASSES':[
+    #This allows users to authenticate by passing a token in the HTTP header.
+    'rest_framework.authentication.TokenAuthentication',
+
+    #This is for Session-based authentication (used by the browsable API)
+    'rest_framework.authentication.SessionAuthentication',
+],
+
+'DEFAULT_PERMISSION_CLASSES': [
+    #This typically means only authenticated users can access API endpoints
+    'rest_framework.permissions.IsAuthenticated',
+    
+]
+
+}
